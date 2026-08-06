@@ -12,7 +12,31 @@ giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
 
 ## Neler var?
 
-**Çoklu terminal (yeni)**
+**Silme ve çöp kutusu (yeni)**
+
+- Sefer, otobüs, güzergah, bilet, kafile, kullanıcı ve bildirim — **her yerde silme** düğmesi
+- Silmeden önce **ne gideceği açıkça gösterilir**: "Bu seferle birlikte 1 kafile, 12 bilet de silinecek"
+- Hiçbir şey anında yok olmaz: silinen kayıt **çöp kutusuna** gider, **30 gün** boyunca durur
+- Silme sonrası ekranda **"Geri al"** düğmesi çıkar — yanlış tıkladıysanız tek hamlede geri gelir
+- Geri alındığında **bağlı kayıtlar da aynen döner** (biletler, kafileler, koltuk numaraları, PNR'ler)
+- Çöp kutusu ekranından tek tek geri alma, kalıcı silme veya tamamen boşaltma
+- Güvenlik kilitleri: kendi hesabınızı silemezsiniz, son yöneticiyi silemezsiniz, acenteler hiçbir şey silemez
+- Süresi dolanlar kendiliğinden temizlenir
+
+**Firma kimliği (yeni)**
+
+- **Logo yükleme** — giriş ekranında, sol menüde, biletlerde ve yolcu listelerinde görünür
+- Slogan, internet adresi, vergi dairesi/no ve bilet alt yazısı ayarlanabilir
+- Yüklenen resim tarayıcıda otomatik küçültülür, sunucuya yük bindirmez
+
+**Ekranda yol gösterme (yeni)**
+
+- İlk girişte **karşılama turu**: "önce güzergah, sonra otobüs, sonra sefer" diye adım adım yönlendirir
+- Her ekranın başında **"burada ne yapılır"** açıklaması — okuyup kapatınca bir daha çıkmaz
+- Boş ekranlarda ne yapılacağını anlatan **yönlendirme ve düğme** ("İlk otobüsü ekle")
+- Ayarlar → Yardım bölümünden tüm açıklamalar geri açılabilir
+
+**Çoklu terminal**
 
 - **Canlı koltuk güncellemesi**: bir acente satış yaptığı anda aynı seferi açık tutan tüm terminallerde
   koltuk haritası kendiliğinden tazelenir, satılan koltuk yanıp söner ve "… koltuk sattı" bildirimi çıkar
@@ -172,11 +196,22 @@ Günlük otomatik yedek için bu satırı `crontab -e` içine ekleyebilirsiniz.
 Kural ve güvenlik testleri (sunucu çalışırken):
 
 ```bash
-node test-api.js
+node test-api.js     # 30 test — satış kuralları
+node test-silme.js   # 40 test — silme, çöp kutusu, firma kimliği
 ```
 
-Cinsiyet kuralı, kafile istisnası, çift satış engeli, eşzamanlı satış yarışı,
-rol izolasyonu ve iptal senaryolarını denetler.
+veya ikisi birden:
+
+```bash
+npm test
+```
+
+`test-api.js` cinsiyet kuralını, kafile istisnasını, çift satış engelini, eşzamanlı satış
+yarışını, rol izolasyonunu ve iptal senaryolarını denetler.
+
+`test-silme.js` silme yetkilerini, silme önizlemesini, çöp kutusuna taşımayı, geri almada
+bağlı kayıtların (bilet, kafile, sefer) eksiksiz dönüşünü, kalıcı silmeyi ve logo/firma
+bilgisi doğrulamalarını denetler.
 
 ---
 
@@ -186,7 +221,8 @@ rol izolasyonu ve iptal senaryolarını denetler.
 server.js            Sunucu girişi
 src/db.js            Veritabanı şeması, koltuk düzeni hesapları, örnek veri
 src/auth.js          Giriş, JWT, rol kontrolü
-src/api.js           Tüm API uçları (satış, iptal, rapor, tanımlar)
+src/api.js           Tüm API uçları (satış, iptal, rapor, tanımlar, silme)
+src/trash.js         Çöp kutusu: silme, geri alma, otomatik temizlik
 public/index.html    Giriş ekranı
 public/app.html      Uygulama kabuğu
 public/js/app.js     Arayüz (koltuk haritası, satış paneli, raporlar, yazdırma)

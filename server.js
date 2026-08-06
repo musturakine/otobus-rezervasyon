@@ -4,6 +4,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const api = require('./src/api');
 const { startAutoBackup, DATA_DIR } = require('./src/db');
+const { otomatikTemizlikBaslat } = require('./src/trash');
 const { securityHeaders, forceHttps } = require('./src/auth');
 
 const app = express();
@@ -50,6 +51,7 @@ app.use((err, req, res, next) => {
 
 const server = app.listen(PORT, HOST, () => {
   startAutoBackup();
+  otomatikTemizlikBaslat();
   console.log(`
   ╔══════════════════════════════════════════════════╗
   ║   OTOBÜS REZERVASYON VE SATIŞ SİSTEMİ            ║

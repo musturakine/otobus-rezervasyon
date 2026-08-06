@@ -1,100 +1,132 @@
-# İsimtescil Alan Adını Sisteme Bağlama
+# turakine.com.tr Adresini Sisteme Bağlama
 
-Bu rehber, isimtescil.net'ten aldığınız alan adını (`siteniz.com`) otobüs
-rezervasyon sisteminize bağlamak içindir.
+Bu rehber size özel hazırlandı. Gerçek adresleriniz yazılı, örnek değil.
 
-**Ön şart:** Sistem önce Render'a yüklenmiş ve `xxxx.onrender.com` adresinde
-çalışıyor olmalı. Henüz yapmadıysanız önce KURULUM rehberindeki adımları
-tamamlayın — alan adı bağlama en son adımdır.
+**Sisteminizin şu anki adresi:** https://otobus-rezervasyon.onrender.com
+**Bağlayacağımız adres:** turakine.com.tr
 
 ---
 
-## 1. Adım — Render tarafında alan adını tanıtın
+## 1. BÖLÜM — Render tarafı
 
-1. Render panelinde servisinize tıklayın (`otobus-rezervasyon`)
+1. Render'da sisteminizin sayfasını açın (`otobus-rezervasyon`)
 2. Sol menüden **Settings**
-3. Aşağı inip **Custom Domains** bölümünü bulun
-4. **+ Add Custom Domain** → `siteniz.com` yazın → Save
-5. Aynı işlemi tekrarlayıp `www.siteniz.com` de ekleyin
+3. Sayfayı aşağı kaydırın, **Custom Domains** bölümünü bulun
+4. **+ Add Custom Domain** butonuna basın
+5. Kutuya şunu yazın ve kaydedin:
 
-Render şimdi size eklemeniz gereken DNS kayıtlarını gösterecek ve
-"Verifying..." / "DNS update needed" yazacak. Bu normaldir — 2. adımı
-yapınca düzelecek. Ekrandaki `xxxx.onrender.com` adresini bir yere not edin.
+   ```
+   turakine.com.tr
+   ```
+
+6. Tekrar **+ Add Custom Domain** basın, bu sefer şunu yazın:
+
+   ```
+   www.turakine.com.tr
+   ```
+
+Kaydettikten sonra Render iki adresin de yanında turuncu/gri renkte
+**"DNS update needed"** veya **"Verifying"** yazacak.
+
+**Bu normaldir, hata değildir.** 2. bölümü yapınca yeşile dönecek.
 
 ---
 
-## 2. Adım — İsimtescil'de DNS kayıtlarını girin
+## 2. BÖLÜM — İsimtescil tarafı
 
-1. isimtescil.net → **Üye Girişi**
-2. **Domainlerim** → `siteniz.com` yanındaki **Yönet**
-3. **DNS Yönetimi** (hosting de aldıysanız: Hybrid Panel → Hostinglere
-   Atanmış Domainlerim → domain → DNS → DNS Listesi)
+1. isimtescil.net'te **Domainlerim** listesinde `turakine.com.tr` satırını bulun
+2. Satırın en sağındaki **dişli (⚙) simgesine** tıklayın
+3. Açılan menüden **DNS Yönetimi** (veya "DNS Ayarları") seçin
 
-Burada iki kayıt ekleyeceksiniz:
+Şimdi iki kayıt ekleyeceksiniz.
 
-### A kaydı (ana adres)
+### 1. Kayıt — A kaydı
 
-| Alan | Değer |
+| Kutu adı | Yazılacak |
 |---|---|
-| Tür | **A** |
-| İsim / Host | `@` (boş bırakılıyorsa boş bırakın) |
-| Değer / Hedef | `216.24.57.1` |
-| TTL | 3600 (varsayılan) |
+| Tür / Type | **A** |
+| İsim / Host / Alan Adı | `@` — kabul etmezse boş bırakın |
+| Değer / Hedef / IP | `216.24.57.1` |
+| TTL | 3600 (varsayılan kalsın) |
 
-### CNAME kaydı (www'lu adres)
+**Kaydet** deyin.
 
-| Alan | Değer |
+### 2. Kayıt — CNAME kaydı
+
+| Kutu adı | Yazılacak |
 |---|---|
-| Tür | **CNAME** |
+| Tür / Type | **CNAME** |
 | İsim / Host | `www` |
-| Değer / Hedef | `xxxx.onrender.com` (Render'ın verdiği adres) |
-| TTL | 3600 |
+| Değer / Hedef | `otobus-rezervasyon.onrender.com` |
+| TTL | 3600 (varsayılan kalsın) |
 
-### Silinmesi gerekenler
+**Kaydet** deyin.
 
-- Listede **AAAA** kaydı varsa **silin**. Render IPv6 kullanmıyor, bu kayıt
-  sitenin açılmamasına yol açar.
-- `@` veya `www` için **başka bir A / CNAME kaydı** varsa (park sayfası,
-  "yapım aşamasında" sayfası) onları da silin. Aynı isimde iki kayıt olamaz.
+> Hedefi yazarken başına `https://` KOYMAYIN. Sonuna nokta koymanız
+> gerekebilir, panel kendi ekliyorsa karışmayın.
 
----
+### Silinecekler
 
-## 3. Adım — Bekleyin ve doğrulayın
+Listede şunlar varsa **silin**:
 
-DNS değişikliği yayılması **10 dakika ile 1 saat** arası sürer (nadiren
-24 saat). Sonra Render → Settings → Custom Domains bölümünde:
+- Herhangi bir **AAAA** kaydı
+- `@` veya `www` için **zaten var olan** başka A / CNAME kaydı
+  (genelde isimtescil'in park sayfasına gider)
 
-- Alan adının yanında **Verified** ✓ yazmalı
-- Kısa süre sonra **Certificate Issued** ✓ (ücretsiz SSL, otomatik)
-
-İkisi de yeşil olunca `https://siteniz.com` adresi sisteminizi açacaktır.
+Aynı isimde iki kayıt olamaz, eskisi durursa yenisi çalışmaz.
 
 ---
 
-## Sık yapılan hatalar
+## 3. BÖLÜM — Bekleme
 
-**❌ İsimtescil'in "Web Yönlendirme" / "URL Yönlendirme" özelliğini
-kullanmayın.** Bu, alan adını çerçeve içinde başka adrese yönlendirir; SSL
-sertifikası alınamaz ve girişler bozulur. Yukarıdaki A + CNAME yöntemini
-kullanın.
+DNS değişikliğinin yayılması **10 dakika – 1 saat** sürer.
 
-**❌ Nameserver'ları değiştirmeyin.** Alan adının nameserver'ları
-isimtescil'de kalmalı (`ns1.isimtescil.net` gibi), aksi halde girdiğiniz DNS
-kayıtları hiçbir işe yaramaz. Panelde nameserver kısmı başka bir firmayı
-gösteriyorsa DNS kayıtlarını o firmada girmeniz gerekir.
+Render → Settings → Custom Domains sayfasını arada bir yenileyin:
 
-**❌ Sistemde ayar değiştirmenize gerek yok.** Uygulama hangi alan adından
-açıldığını kendiliğinden algılar. Bilet bağlantıları, QR kodlar ve WhatsApp
-mesajları yeni adresi otomatik kullanır.
+- `turakine.com.tr` → **Verified** ✓
+- Biraz sonra → **Certificate Issued** ✓ (ücretsiz SSL, kendiliğinden)
+
+İkisi de yeşil olunca **https://turakine.com.tr** sisteminizi açacak.
+
+---
+
+## Dikkat edilecekler
+
+**❌ "Web Yönlendirme" / "URL Yönlendirme" kullanmayın.**
+İsimtescil panelinde böyle bir menü var ve kolay görünüyor. Ama o yöntemle
+SSL sertifikası alınamaz, güvenli bağlantı olmaz, girişler bozulur.
+Yukarıdaki A + CNAME yöntemi doğru olan.
+
+**❌ Nameserver'ları değiştirmeyin.**
+Alan adının nameserver'ları isimtescil'de kalmalı. Değiştirirseniz
+girdiğiniz DNS kayıtları işe yaramaz.
+
+**✅ Sistemde ayar yapmanıza gerek yok.**
+Program hangi adresten açıldığını kendisi anlıyor. Biletler, QR kodlar ve
+WhatsApp mesajları yeni adresi otomatik kullanacak.
+
+**ℹ️ Eski adres de çalışmaya devam eder.**
+`otobus-rezervasyon.onrender.com` kapanmaz. Yedek olarak elinizde kalır.
 
 ---
 
 ## Kontrol listesi
 
-- [ ] Render'da site `xxxx.onrender.com` üzerinden açılıyor
-- [ ] Render → Custom Domains'e `siteniz.com` ve `www.siteniz.com` eklendi
+- [ ] Render → Custom Domains'e `turakine.com.tr` eklendi
+- [ ] Render → Custom Domains'e `www.turakine.com.tr` eklendi
 - [ ] İsimtescil'de A kaydı: `@` → `216.24.57.1`
-- [ ] İsimtescil'de CNAME kaydı: `www` → `xxxx.onrender.com`
+- [ ] İsimtescil'de CNAME kaydı: `www` → `otobus-rezervasyon.onrender.com`
 - [ ] Eski AAAA / park kayıtları silindi
-- [ ] Render'da **Verified** ve **Certificate Issued** yeşil
-- [ ] `https://siteniz.com` açılıyor, tarayıcıda kilit simgesi görünüyor
+- [ ] Render'da **Verified** yeşil
+- [ ] Render'da **Certificate Issued** yeşil
+- [ ] https://turakine.com.tr açılıyor, adres çubuğunda kilit simgesi var
+
+---
+
+## Bundan sonra yapılacak (unutmayın)
+
+Sistem artık internete açık. Gerçek kullanıma geçmeden önce:
+
+- [ ] Yönetici şifresini değiştirin
+- [ ] Demo hesaplarını kapatın
+- [ ] Kendi acente kullanıcılarınızı ekleyin

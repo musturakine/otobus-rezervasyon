@@ -1,11 +1,11 @@
 {
   "name": "otobus-rezervasyon",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Otobüs koltuk, kafile rezervasyon ve satış sistemi",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test-api.js"
+    "test": "node test-api.js && node test-silme.js"
   },
   "license": "MIT",
   "dependencies": {

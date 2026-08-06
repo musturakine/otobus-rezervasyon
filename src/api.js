@@ -8,6 +8,7 @@ const {
 } = require('./auth');
 const events = require('./events');
 const sms = require('./sms');
+const trash = require('./trash');
 
 const router = express.Router();
 
@@ -283,17 +284,7 @@ router.put('/trips/:id', adminOnly, (req, res) => {
   ok(res, { ok: true });
 });
 
-router.delete('/trips/:id', adminOnly, (req, res) => {
-  const t = db.prepare('SELECT * FROM trips WHERE id=?').get(Number(req.params.id));
-  if (!t) return bad(res, 'Sefer bulunamadı.', 404);
-  const sold = db.prepare("SELECT COUNT(*) c FROM tickets WHERE trip_id=? AND status<>'iptal'").get(t.id).c;
-  if (sold > 0) return bad(res, 'Bilet satılmış sefer silinemez. "İptal" durumuna alabilirsiniz.');
-  db.prepare('DELETE FROM groups WHERE trip_id=?').run(t.id);
-  db.prepare('DELETE FROM tickets WHERE trip_id=?').run(t.id);
-  db.prepare('DELETE FROM trips WHERE id=?').run(t.id);
-  log(req, 'sefer_sil', { id: t.id });
-  ok(res, { ok: true });
-});
+/* Silme uçları aşağıda "Çöp kutusu" bölümünde toplu olarak tanımlıdır. */
 
 // ------------------------------------------------------------------
 // Koltuk haritası
@@ -754,14 +745,46 @@ router.get('/logs', adminOnly, (req, res) => {
 // ------------------------------------------------------------------
 function getCompany() {
   const row = db.prepare("SELECT value FROM settings WHERE key='company'").get();
-  return row ? JSON.parse(row.value) : { name: 'FİRMA ADI', phone: '', address: '' };
+  const c = row ? JSON.parse(row.value) : {};
+  return {
+    name: c.name || 'FİRMA ADI',
+    slogan: c.slogan || '',
+    phone: c.phone || '',
+    address: c.address || '',
+    website: c.website || '',
+    tax_info: c.tax_info || '',
+    logo: c.logo || '',
+    ticket_note: c.ticket_note ||
+      'Yolcularımızın kalkış saatinden 15 dakika önce peronda bulunmaları rica olunur. İyi yolculuklar dileriz.'
+  };
 }
 router.get('/settings', (req, res) => ok(res, { company: getCompany() }));
 router.put('/settings', adminOnly, (req, res) => {
   const c = req.body && req.body.company;
-  if (!c || !c.name) return bad(res, 'Firma adı zorunlu.');
-  db.prepare('INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)').run('company', JSON.stringify(c));
-  ok(res, { ok: true });
+  if (!c || !c.name || !String(c.name).trim()) return bad(res, 'Firma adı zorunlu.');
+
+  const metin = (v, max) => String(v ?? '').trim().slice(0, max);
+  const logo = String(c.logo ?? '');
+  if (logo) {
+    if (!/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);base64,/.test(logo))
+      return bad(res, 'Logo geçerli bir resim dosyası olmalı (PNG, JPG veya WEBP).');
+    if (logo.length > 400 * 1024)
+      return bad(res, 'Logo dosyası çok büyük. Lütfen daha küçük bir resim seçin (en fazla ~300 KB).');
+  }
+
+  const temiz = {
+    name: metin(c.name, 80),
+    slogan: metin(c.slogan, 90),
+    phone: metin(c.phone, 40),
+    address: metin(c.address, 160),
+    website: metin(c.website, 80),
+    tax_info: metin(c.tax_info, 120),
+    ticket_note: metin(c.ticket_note, 300),
+    logo
+  };
+  db.prepare('INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)').run('company', JSON.stringify(temiz));
+  log(req, 'ayar_guncelle', 'Firma bilgileri güncellendi');
+  ok(res, { ok: true, company: temiz });
 });
 
 /* ------------------------------------------------------------------
@@ -895,6 +918,102 @@ router.get('/system', adminOnly, (req, res) => {
     node: process.version,
     secure: isSecure(req)
   });
+});
+
+/* ==================================================================
+   Çöp kutusu — silme, geri alma, kalıcı silme
+   ------------------------------------------------------------------
+   Hiçbir silme işlemi veriyi anında yok etmez. Kayıt önce çöp
+   kutusuna taşınır, 30 gün boyunca oradan geri alınabilir.
+================================================================== */
+const TURLER = {
+  trip:    { yol: 'trips',    ad: 'Sefer' },
+  bus:     { yol: 'buses',    ad: 'Otobüs' },
+  route:   { yol: 'routes',   ad: 'Güzergah' },
+  ticket:  { yol: 'tickets',  ad: 'Bilet' },
+  group:   { yol: 'groups',   ad: 'Kafile' },
+  user:    { yol: 'users',    ad: 'Kullanıcı' },
+  message: { yol: 'messages', ad: 'Bildirim' }
+};
+
+/** Silmeden önce "ne gidecek" bilgisini döner — hiçbir şey silmez. */
+function onizleUcu(entity) {
+  return (req, res) => {
+    const bilgi = trash.onizle(entity, Number(req.params.id));
+    if (!bilgi) return bad(res, `${TURLER[entity].ad} bulunamadı.`, 404);
+    ok(res, bilgi);
+  };
+}
+
+function silmeUcu(entity, ekKontrol) {
+  return (req, res) => {
+    const id = Number(req.params.id);
+    if (ekKontrol) {
+      const hata = ekKontrol(req, id);
+      if (hata) return bad(res, hata);
+    }
+    try {
+      const sonuc = trash.sil(entity, id, req.user);
+      log(req, `${entity}_sil`, { id, label: sonuc.label });
+      if (entity === 'trip' || entity === 'bus' || entity === 'route') notifyTrip(req, 'delete', { id });
+      ok(res, { ok: true, ...sonuc, geri_alinabilir: true });
+    } catch (e) {
+      bad(res, e.message || 'Silinemedi.', e.code || 400);
+    }
+  };
+}
+
+for (const [entity, bilgi] of Object.entries(TURLER)) {
+  router.get(`/${bilgi.yol}/:id/silme-onizleme`, adminOnly, onizleUcu(entity));
+}
+
+router.delete('/trips/:id',    adminOnly, silmeUcu('trip'));
+router.delete('/groups/:id',   adminOnly, silmeUcu('group'));
+router.delete('/tickets/:id',  adminOnly, silmeUcu('ticket'));
+router.delete('/messages/:id', adminOnly, silmeUcu('message'));
+router.delete('/routes/:id',   adminOnly, silmeUcu('route'));
+router.delete('/buses/:id',    adminOnly, silmeUcu('bus'));
+
+router.delete('/users/:id', adminOnly, silmeUcu('user', (req, id) => {
+  if (id === req.user.id) return 'Kendi hesabınızı silemezsiniz. Başka bir yönetici silebilir.';
+  const u = db.prepare('SELECT * FROM users WHERE id=?').get(id);
+  if (!u) return null; // 404'ü silme katmanı versin
+  if (u.role === 'admin') {
+    const kalan = db.prepare("SELECT COUNT(*) c FROM users WHERE role='admin' AND active=1 AND id<>?").get(id).c;
+    if (kalan === 0) return 'Sistemdeki son yöneticiyi silemezsiniz. Önce başka bir yönetici hesabı açın.';
+  }
+  return null;
+}));
+
+router.get('/trash', adminOnly, (req, res) => {
+  ok(res, { saklama_gun: trash.SAKLAMA_GUN, items: trash.listele() });
+});
+
+router.get('/trash/count', (req, res) => {
+  ok(res, { count: req.user.role === 'admin' ? trash.sayi() : 0 });
+});
+
+router.post('/trash/:id/restore', adminOnly, (req, res) => {
+  try {
+    const sonuc = trash.geriAl(Number(req.params.id));
+    log(req, 'cop_geri_al', sonuc.label);
+    notifyTrip(req, 'restore', {});
+    ok(res, { ok: true, ...sonuc });
+  } catch (e) { bad(res, e.message, e.code || 400); }
+});
+
+router.delete('/trash/:id', adminOnly, (req, res) => {
+  try {
+    const sonuc = trash.kaliciSil(Number(req.params.id));
+    log(req, 'cop_kalici_sil', sonuc.label);
+    ok(res, { ok: true, ...sonuc });
+  } catch (e) { bad(res, e.message, e.code || 400); }
+});
+
+router.post('/trash/empty', adminOnly, (req, res) => {
+  const n = trash.bosalt();
+  log(req, 'cop_bosalt', `${n} kayıt kalıcı silindi`);
+  ok(res, { ok: true, count: n });
 });
 
 module.exports = router;
