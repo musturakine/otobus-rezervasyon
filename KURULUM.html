@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Otobüs Rezervasyon Sistemi — Kurulum ve Kullanım Rehberi</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;color:#0f172a;background:#f4f6fb;
+       line-height:1.65;font-size:15.5px}
+  .wrap{max-width:840px;margin:0 auto;padding:0 20px 70px}
+  header{background:linear-gradient(150deg,#0b1f3a,#12294b 55%,#1e4b8f);color:#fff;padding:44px 20px 52px;margin-bottom:-28px}
+  header .in{max-width:840px;margin:0 auto}
+  header h1{margin:0 0 8px;font-size:29px;letter-spacing:-.02em}
+  header p{margin:0;color:#c7d7f5;max-width:56ch}
+  .badge{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);
+         padding:5px 12px;border-radius:99px;font-size:12.5px;margin-bottom:14px}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:26px 28px;margin-bottom:20px;
+        box-shadow:0 4px 14px rgba(15,23,42,.06)}
+  h2{font-size:21px;margin:0 0 4px;letter-spacing:-.02em;display:flex;align-items:center;gap:11px}
+  h2 .n{width:32px;height:32px;border-radius:10px;background:#1e4b8f;color:#fff;display:grid;place-items:center;
+        font-size:15px;flex-shrink:0}
+  h3{font-size:16px;margin:24px 0 8px}
+  .lead{color:#64748b;margin:0 0 18px;padding-left:43px}
+  ol{padding-left:20px;margin:0}
+  ol li{margin-bottom:13px}
+  ul{padding-left:20px}
+  code{background:#0f172a;color:#e2e8f0;padding:2px 8px;border-radius:6px;font-size:13.5px;
+       font-family:Consolas,"Courier New",monospace;white-space:nowrap}
+  pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:13.5px;
+      font-family:Consolas,"Courier New",monospace;margin:10px 0}
+  pre code{background:none;padding:0}
+  .kutu{border-left:4px solid #2563eb;background:#eff6ff;padding:13px 17px;border-radius:0 10px 10px 0;margin:16px 0;font-size:14.5px}
+  .uyari{border-left-color:#d97706;background:#fffbeb}
+  .tehlike{border-left-color:#dc2626;background:#fef2f2}
+  .iyi{border-left-color:#059669;background:#ecfdf5}
+  .kutu b{display:block;margin-bottom:3px}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px}
+  th{background:#f1f5f9;text-align:left;padding:9px 12px;font-size:12.5px;text-transform:uppercase;
+     letter-spacing:.05em;color:#475569;border-bottom:2px solid #cbd5e1}
+  td{padding:9px 12px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+  .adim{display:flex;gap:14px;padding:15px 0;border-bottom:1px dashed #e2e8f0}
+  .adim:last-child{border-bottom:0}
+  .adim .no{width:27px;height:27px;border-radius:50%;background:#e0e7ff;color:#1e40af;display:grid;place-items:center;
+            font-weight:700;font-size:13px;flex-shrink:0}
+  .adim .ic{flex:1}
+  .adim b{display:block;margin-bottom:2px}
+  .adim p{margin:0;color:#475569;font-size:14.5px}
+  .fiyat{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #e2e8f0}
+  .fiyat:last-child{border-bottom:0;font-weight:700;font-size:17px;padding-top:13px}
+  footer{text-align:center;color:#94a3b8;font-size:13px;padding:28px 20px}
+  @media print{body{background:#fff}header{background:#0b1f3a !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .card{box-shadow:none;page-break-inside:avoid}}
+  @media (max-width:600px){header{padding:32px 18px 44px}header h1{font-size:23px}.card{padding:20px 18px}
+    .lead{padding-left:0}h2{font-size:18px}}
+</style>
+</head>
+<body>
+
+<header><div class="in">
+  <div class="badge">Sürüm 1.1 · Türkçe kullanım rehberi</div>
+  <h1>Otobüs Rezervasyon ve Satış Sistemi</h1>
+  <p>Kurulum, telefona ekleme ve internete açma — teknik bilgi gerektirmeyen adımlarla anlatılmıştır.</p>
+</div></header>
+
+<div class="wrap">
+
+<div class="card">
+  <h2><span class="n">1</span> Kendi bilgisayarınızda çalıştırma</h2>
+  <p class="lead">Önce burada deneyin. Beğenmezseniz klasörü silmeniz yeterli, hiçbir iz kalmaz.</p>
+
+  <div class="adim"><div class="no">1</div><div class="ic">
+    <b>Node.js kurun (bir kereye mahsus)</b>
+    <p><b>nodejs.org</b> adresine gidin, yeşil <b>LTS</b> butonuna basın. İnen <code>.msi</code> dosyasını çalıştırıp
+    hep <b>Next</b>, sonra <b>Install</b> deyin. Bittiğinde bilgisayarı yeniden başlatın.</p>
+  </div></div>
+
+  <div class="adim"><div class="no">2</div><div class="ic">
+    <b>Zip dosyasını çıkarın</b>
+    <p><code>otobus-rezervasyon.zip</code> dosyasına sağ tıklayın → <b>Tümünü Ayıkla</b> → <b>Ayıkla</b>.
+    Açılan klasörlerin içine girin. <b>server.js</b> dosyasını gördüğünüz klasör doğru klasördür.</p>
+  </div></div>
+
+  <div class="adim"><div class="no">3</div><div class="ic">
+    <b>O klasörde komut penceresi açın</b>
+    <p>Pencerenin en üstündeki <b>adres çubuğuna</b> tıklayın, yazan yolu silin, yerine <code>cmd</code> yazıp
+    <b>Enter</b>'a basın. Siyah bir pencere açılır — doğru klasörde açılmış olur.</p>
+  </div></div>
+
+  <div class="adim"><div class="no">4</div><div class="ic">
+    <b>İki komut yazın</b>
+    <p>Sırayla şunları yazıp Enter'a basın. Birincisi 1–2 dakika sürer, sadece ilk seferde gerekir.</p>
+    <pre><code>npm install
+npm start</code></pre>
+  </div></div>
+
+  <div class="adim"><div class="no">5</div><div class="ic">
+    <b>Tarayıcıdan açın</b>
+    <p>Adres çubuğuna <code>localhost:3000</code> yazın. Kullanıcı adı <b>admin</b>, şifre <b>admin123</b>.</p>
+  </div></div>
+
+  <div class="kutu uyari"><b>Siyah pencereyi kapatmayın</b>
+    Sistem o pencere açıkken çalışır. Kapatırsanız site de kapanır.
+    Tekrar açmak için: aynı klasörde adres çubuğuna <code>cmd</code> → <code>npm start</code>.
+  </div>
+
+  <div class="kutu tehlike"><b>"package.json bulunamadı" hatası alırsanız</b>
+    Yanlış klasördesiniz. Siyah pencereye <code>dir</code> yazıp Enter'a basın; listede <b>package.json</b> yoksa
+    <code>cd otobus-rezervasyon</code> yazıp tekrar deneyin.
+  </div>
+</div>
+
+
+<div class="card">
+  <h2><span class="n">2</span> Telefonda kullanma</h2>
+  <p class="lead">Sistem telefonda uygulama gibi çalışır — ayrı bir uygulama indirmeniz gerekmez.</p>
+
+  <h3>Aynı Wi-Fi ağındaysanız (test için)</h3>
+  <ol>
+    <li>Siyah pencereye <code>ipconfig</code> yazıp Enter'a basın.</li>
+    <li>Çıkan listede <b>IPv4 Adresi</b> satırını bulun (örnek: <code>192.168.1.25</code>).</li>
+    <li>Telefonun tarayıcısına <code>192.168.1.25:3000</code> yazın.</li>
+  </ol>
+
+  <h3>Ana ekrana ekleme (uygulama gibi açılması için)</h3>
+  <table>
+    <tr><th>Telefon</th><th>Yapılacak</th></tr>
+    <tr><td><b>Android</b><br>(Chrome)</td>
+        <td>Sistem açıldığında altta çıkan <b>"Ana ekrana ekleyin"</b> kutusunda <b>Ekle</b>'ye basın.
+            Çıkmazsa: sağ üst <b>⋮</b> → <b>Ana ekrana ekle</b>.</td></tr>
+    <tr><td><b>iPhone</b><br>(Safari)</td>
+        <td>Alttaki <b>paylaş</b> simgesine (kutudan çıkan ok) basın → <b>Ana Ekrana Ekle</b> → <b>Ekle</b>.</td></tr>
+  </table>
+  <div class="kutu iyi"><b>Eklendikten sonra</b>
+    Simgeye dokununca tam ekran, adres çubuğu olmadan açılır. Tıpkı mağazadan indirilmiş bir uygulama gibi görünür.
+  </div>
+</div>
+
+
+<div class="card">
+  <h2><span class="n">3</span> İnternete açma</h2>
+  <p class="lead">Acentelerinizin kendi bilgisayar ve telefonlarından girebilmesi için sistemin bir web adresinde
+  sürekli açık olması gerekir.</p>
+
+  <div class="kutu tehlike"><b>Ücretsiz plan bu iş için uygun değil</b>
+    Ücretsiz planlarda sunucu 15 dakika işlem olmayınca uykuya geçer (acenteniz girmek isteyince 1 dakika bekler)
+    ve kalıcı disk verilmediği için <b>bilet kayıtlarınız silinebilir</b>. Gerçek satış yapacaksanız ücretli plan şart.
+  </div>
+
+  <h3>Aylık maliyet (Render.com üzerinden)</h3>
+  <div>
+    <div class="fiyat"><span>Sunucu (Starter plan)</span><span>7,00 $</span></div>
+    <div class="fiyat"><span>1 GB kalıcı disk (binlerce bilete yeter)</span><span>0,25 $</span></div>
+    <div class="fiyat"><span>Toplam</span><span>≈ 7,25 $ / ay</span></div>
+  </div>
+  <p style="color:#64748b;font-size:14px">Fiyatlar Ağustos 2026 itibarıyladır, değişebilir. Alan adı (örn. <i>firmaniz.com</i>)
+  isterseniz ayrıca yıllık ücreti vardır; zorunlu değildir, Render size ücretsiz bir adres verir.</p>
+
+  <h3>Adımlar</h3>
+  <div class="adim"><div class="no">1</div><div class="ic">
+    <b>GitHub hesabı açın</b>
+    <p><b>github.com</b> → <b>Sign up</b>. E-posta ve şifre yeterli, ücretsizdir.</p>
+  </div></div>
+  <div class="adim"><div class="no">2</div><div class="ic">
+    <b>Dosyaları yükleyin</b>
+    <p>Sağ üstteki <b>+</b> → <b>New repository</b> → isim: <code>otobus-rezervasyon</code> → <b>Private</b> seçin →
+    <b>Create</b>. Açılan sayfada <b>"uploading an existing file"</b> bağlantısına tıklayın.
+    Bilgisayarınızda zip'i çıkardığınız klasörü açın, içindeki <b>tüm dosya ve klasörleri</b> seçip
+    (Ctrl+A) tarayıcıdaki alana sürükleyin. Aşağıdaki <b>Commit changes</b> butonuna basın.</p>
+  </div></div>
+  <div class="adim"><div class="no">3</div><div class="ic">
+    <b>Render hesabı açın</b>
+    <p><b>render.com</b> → <b>Get Started</b> → <b>GitHub ile devam et</b>. Kredi kartı bilgisi ücretli plana
+    geçerken istenir.</p>
+  </div></div>
+  <div class="adim"><div class="no">4</div><div class="ic">
+    <b>Sistemi yayına alın</b>
+    <p>Render'da <b>New +</b> → <b>Blueprint</b> → az önce oluşturduğunuz depoyu seçin.
+    Projedeki <code>render.yaml</code> dosyası sayesinde <b>tüm ayarlar kendiliğinden gelir</b>
+    (sunucu bölgesi Frankfurt, kalıcı disk, güvenlik anahtarı). <b>Apply</b> deyin.</p>
+  </div></div>
+  <div class="adim"><div class="no">5</div><div class="ic">
+    <b>3–5 dakika bekleyin</b>
+    <p>Kurulum bitince sayfanın üstünde adresiniz görünür:
+    <code>https://otobus-rezervasyon-xxxx.onrender.com</code>. Bu adresi acentelerinize verin.</p>
+  </div></div>
+  <div class="adim"><div class="no">6</div><div class="ic">
+    <b>İlk girişte mutlaka yapın</b>
+    <p><b>admin / admin123</b> ile girin → <b>Ayarlar</b> sayfasından şifrenizi değiştirin →
+    <b>Kullanıcılar</b> sayfasından acentelerinizi ekleyin ve demo hesapları (acente1, acente2) <b>pasif</b> yapın.</p>
+  </div></div>
+
+  <div class="kutu iyi"><b>https otomatik gelir</b>
+    Render adreslerinde şifreli bağlantı (kilit simgesi) hazır gelir; ayrıca bir şey yapmanıza gerek yoktur.
+    Sistem, giriş bilgilerinin şifresiz bağlantıda gitmesini de kendiliğinden engeller.
+  </div>
+</div>
+
+
+<div class="card">
+  <h2><span class="n">4</span> Günlük kullanım</h2>
+
+  <h3>Aynı anda birden fazla kişi çalışabilir</h3>
+  <p>Bir acente koltuk sattığı anda, aynı seferi açık tutan diğer tüm terminallerde koltuk haritası
+  <b>kendiliğinden</b> güncellenir ve ekranda "… koltuk sattı" bildirimi çıkar. Üst çubuktaki yeşil nokta
+  canlı bağlantının açık olduğunu gösterir. Aynı koltuğun iki kez satılması sistem tarafından engellenir.</p>
+
+  <h3>Kimin ne göreceği</h3>
+  <table>
+    <tr><th>Rol</th><th>Yetkileri</th></tr>
+    <tr><td><b>Yönetici</b></td><td>Her şey: otobüs/güzergah/sefer tanımlama, kullanıcı ekleme,
+        tüm satışlar ve raporlar, yedek indirme, işlem kayıtları.</td></tr>
+    <tr><td><b>Acente</b></td><td>Bilet satar, kendi sattığı biletleri görür ve düzenler.
+        Başkasının biletine erişemez, tanımlara giremez.</td></tr>
+  </table>
+
+  <h3>Biniş kontrolü (şoför / peron)</h3>
+  <p>Alt menüdeki <b>Biniş</b> bölümünden seferi açın; yolcuya dokundukça yeşile döner ve
+  "kaç kişi bindi / kaç kişi bekliyor" sayacı güncellenir. Ödemesi olmayan yolcular kırmızı
+  <b>ÖDENMEDİ</b> etiketiyle görünür.</p>
+
+  <h3>Yedekleme</h3>
+  <p>Sistem her gün otomatik yedek alır ve son 14 yedeği saklar. Ayrıca <b>Ayarlar → Yedekleme</b>
+  bölümünden istediğiniz an yedek indirebilirsiniz. <b>Ayda bir yedek indirip kendi bilgisayarınızda
+  saklamanızı öneririm.</b></p>
+</div>
+
+
+<div class="card">
+  <h2><span class="n">5</span> Kendi alan adınızı alma ve bağlama</h2>
+  <p class="lead">Render size <code>firmaadi.onrender.com</code> gibi ücretsiz bir adres verir; bu adres
+  çalışır ve güvenlidir. Kendi adresinizi istiyorsanız aşağıdaki adımlar.</p>
+
+  <div class="kutu iyi"><b>Kural değişti: .com.tr artık belgesiz alınıyor</b>
+    Eskiden <b>.com.tr</b> için marka tescili veya ticaret sicil belgesi isteniyordu. TRABİS sistemine
+    geçişle bu zorunluluk kalktı; artık <b>"ilk gelen alır"</b> kuralı geçerli. Ad, soyad, adres,
+    e-posta ve telefon vermeniz yeterli.
+  </div>
+
+  <h3>Hangi uzantı?</h3>
+  <table>
+    <tr><th>Uzantı</th><th>Yıllık ücret (yaklaşık)</th><th>Kimler için</th></tr>
+    <tr><td><b>.com.tr</b></td><td>Çok ucuz — kayıt fiyatları<br>1,5–3 $ civarından başlıyor</td>
+        <td>Yurt içinde çalışan firmalar için en mantıklısı. Türk firması olduğunuzu belli eder,
+            müşteri güveni yüksektir.</td></tr>
+    <tr><td><b>.com</b></td><td>≈ 12 $</td>
+        <td>Uluslararası görünüm isteyenler. Kısa ve akılda kalıcı isimlerin çoğu doludur.</td></tr>
+    <tr><td><b>.tr</b></td><td>≈ 2,5–3 $</td>
+        <td>Yeni ve kısa uzantı. Uygun isim bulma şansı daha yüksek.</td></tr>
+  </table>
+  <div class="kutu uyari"><b>Fiyatlarda dikkat edilecek tek şey</b>
+    İlk yıl fiyatı ile <b>yenileme fiyatı</b> genelde farklıdır. Satın alırken "yenileme ücreti"ni
+    mutlaka kontrol edin — ilk yıl 1 $ olup ikinci yıl 15 $ olan kampanyalar yaygındır.
+    Fiyatlar Ağustos 2026 itibarıyladır ve KDV hariçtir.
+  </div>
+
+  <h3>Nereden alınır</h3>
+  <p>Türkiye'de kayıt yapan firmalardan herhangi biri olur: <b>İsimtescil, Natro, IHS, İnetmar,
+  Turhost, Daha.net</b> gibi. Hepsi aynı işi yapar; fiyat ve yenileme ücretine bakıp seçin.
+  Kredi kartıyla, birkaç dakikada tamamlanır.</p>
+
+  <h3>İsim seçerken</h3>
+  <ul>
+    <li>Telefonda söylendiğinde yazılabilecek kadar basit olsun (Türkçe karakter kullanmayın)</li>
+    <li>Kısa tutun — <code>ozseyahat.com.tr</code>, <code>ozseyahatbilet.com.tr</code> gibi</li>
+    <li>Tire ve rakamdan kaçının; müşteri yanlış yazar</li>
+    <li>Almadan önce firmanın sitesinde <b>sorgulama</b> kutusuna yazıp boş mu diye bakın</li>
+  </ul>
+
+  <h3>Render'a bağlama (alan adını aldıktan sonra)</h3>
+  <ol>
+    <li>Render'da servisinizi açın → <b>Settings</b> → <b>Custom Domains</b> → <b>Add Custom Domain</b>.</li>
+    <li>Adresinizi yazın (örn. <code>bilet.ozseyahat.com.tr</code>). Render size bir <b>CNAME değeri</b> verir.</li>
+    <li>Alan adını aldığınız firmanın panelinde <b>DNS Yönetimi</b> bölümüne girin.</li>
+    <li>Yeni kayıt ekleyin: Tür <b>CNAME</b>, Ad <b>bilet</b>, Değer olarak Render'ın verdiği adresi yapıştırın.</li>
+    <li>15 dakika–2 saat içinde aktifleşir. Güvenlik sertifikası (https) Render tarafından ücretsiz ve
+        otomatik kurulur, sizin bir şey yapmanız gerekmez.</li>
+  </ol>
+  <div class="kutu"><b>Öneri</b>
+    Ana adresi (<code>ozseyahat.com.tr</code>) ileride tanıtım siteniz için saklayın; rezervasyon sistemini
+    <code>bilet.</code> veya <code>rezervasyon.</code> ön ekiyle bağlayın. Sonradan değiştirmek zahmetli olur.
+  </div>
+</div>
+
+
+<div class="card">
+  <h2><span class="n">6</span> Yolcuya bilet gönderme (WhatsApp / SMS)</h2>
+  <p class="lead">Bilet ekranındaki <b>Bilet gönder</b> düğmesiyle yolcuya koltuk, PNR ve sefer bilgisi iletilir.</p>
+
+  <div class="kutu iyi"><b>WhatsApp — bugün kullanabilirsiniz, ücretsiz</b>
+    Hiçbir abonelik veya kurulum gerekmez. Düğmeye bastığınızda WhatsApp, mesaj hazır yazılmış hâlde açılır;
+    siz sadece <b>Gönder</b>'e basarsınız. Acentenin kendi WhatsApp hesabından gider.
+    Bilgisayarda WhatsApp Web, telefonda uygulama açılır.
+  </div>
+
+  <h3>Otomatik SMS (isteğe bağlı, ücretli)</h3>
+  <p>Bilet kesildiği anda yolcuya SMS'in kendiliğinden gitmesini isterseniz bir SMS servisine
+  abone olmanız gerekir. Sistem şu servisleri destekler:</p>
+  <table>
+    <tr><th>Servis</th><th>Notlar</th></tr>
+    <tr><td><b>Netgsm</b></td><td>Türkiye'de yaygın. Kullanıcı numarası, API şifresi ve onaylı SMS başlığı istenir.</td></tr>
+    <tr><td><b>İletiMerkezi</b></td><td>API Key + Hash ile çalışır. Panelden alınır.</td></tr>
+    <tr><td><b>Twilio</b></td><td>Yurt dışı kaynaklı, TL değil dolar üzerinden. Genelde daha pahalıdır.</td></tr>
+    <tr><td><b>Özel servis</b></td><td>Başka bir sağlayıcı kullanıyorsanız kendi adresinizi tanımlayabilirsiniz.</td></tr>
+  </table>
+
+  <h3>Kurulumu</h3>
+  <ol>
+    <li>Seçtiğiniz servise abone olun ve <b>SMS başlığı</b> (gönderici adı, örn. OZSEYAHAT) onayı alın.
+        Başlık onayı operatörlerde 1–3 gün sürebilir.</li>
+    <li><b>Ayarlar → Bildirimler</b> bölümünden servisi seçin, panelden aldığınız bilgileri girin, <b>Kaydet</b>'e basın.</li>
+    <li><b>Deneme SMS'i gönder</b> ile kendi numaranıza test atın. Gelmezse hata mesajı ekranda görünür.</li>
+    <li>Çalıştığını gördükten sonra <b>"Satış sonrası otomatik SMS"</b> seçeneğini açın.</li>
+  </ol>
+
+  <div class="kutu uyari"><b>SMS ücretlerinde dikkat</b>
+    Bir SMS 160 karakterdir. Türkçe karakter (ş, ı, ğ) kullanırsanız bu sınır <b>70 karaktere</b> düşer ve
+    aynı mesaj için 2–3 kat ücret ödersiniz. Bu yüzden ayarlarda <b>"Türkçe karakterleri sadeleştir"</b>
+    seçeneği açık gelir — mesaj "Sayin Ayse Yilmaz" şeklinde gider ama tek SMS olur.
+    Şablonu düzenlerken ekranda kaç karakter ve kaç SMS olduğu anlık gösterilir.
+  </div>
+
+  <p><b>Gönderim Kayıtları</b> sayfasından hangi mesajın kime gittiğini, gitmediyse sebebini görebilirsiniz.</p>
+</div>
+
+
+<div class="card">
+  <h2><span class="n">7</span> Sık karşılaşılan durumlar</h2>
+  <table>
+    <tr><th>Durum</th><th>Ne yapmalı</th></tr>
+    <tr><td>Şifremi unuttum</td>
+        <td>Yönetici, <b>Kullanıcılar</b> sayfasından o kişiyi düzenleyip yeni şifre yazabilir.
+            Yönetici şifresi unutulduysa sunucudaki <code>data</code> klasöründeki veritabanından
+            sıfırlanması gerekir — bu yüzden yönetici şifresini güvenli bir yere not edin.</td></tr>
+    <tr><td>"Çok fazla hatalı giriş" uyarısı</td>
+        <td>Güvenlik koruması devreye girmiştir. 15 dakika sonra kendiliğinden açılır.</td></tr>
+    <tr><td>Koltuk satılmıyor, "az önce satıldı" diyor</td>
+        <td>Başka bir terminal aynı koltuğu sizden önce satmış. Harita zaten kendiliğinden
+            güncellenir; başka bir koltuk seçin.</td></tr>
+    <tr><td>Yan koltuğa bayan/bay satamıyorum</td>
+        <td>Kural gereği yabancı bay–bayan yan yana oturamaz. Aile veya grup ise satış panelindeki
+            <b>Kafile / grup satışı</b> kutusunu işaretleyin.</td></tr>
+    <tr><td>Telefonda "bağlantı yok" ekranı</td>
+        <td>İnternet kesilmiştir. Bağlantı gelince ekran kendiliğinden kapanır.
+            Bağlantı yokken satış yapılamaz — bu, aynı koltuğun iki kez satılmasını önlemek içindir.</td></tr>
+    <tr><td>Sistemi güncellemek istiyorum</td>
+        <td>GitHub'daki dosyaları yenileyin; Render değişikliği görüp kendiliğinden yeniden yayınlar.
+            Verileriniz (bilet, sefer, kullanıcı) diskte durduğu için silinmez.</td></tr>
+  </table>
+</div>
+
+<footer>Otobüs Rezervasyon ve Satış Sistemi · Bu rehberi yazdırıp ofiste bulundurabilirsiniz.</footer>
+</div>
+</body>
+</html>

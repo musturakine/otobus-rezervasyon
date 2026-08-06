@@ -1,0 +1,27 @@
+{
+  "name": "Otobüs Rezervasyon ve Satış",
+  "short_name": "Rezervasyon",
+  "description": "Otobüs koltuk, kafile rezervasyon ve bilet satış sistemi",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b1f3a",
+  "theme_color": "#0b1f3a",
+  "categories": ["business", "productivity", "travel"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Seferler & Satış", "short_name": "Satış", "url": "/app.html#/seferler",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Biniş Kontrolü", "short_name": "Biniş", "url": "/app.html#/binis",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Biletler", "short_name": "Biletler", "url": "/app.html#/biletler",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

@@ -1,0 +1,1 @@
+Veritabani, oturum anahtari ve yedekler bu klasorde otomatik olusur. Bu klasoru silmeyin.

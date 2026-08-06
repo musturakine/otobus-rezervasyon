@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1f3a">
+<title>Giriş — Otobüs Rezervasyon Sistemi</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Rezervasyon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="login-wrap">
+
+  <aside class="login-art">
+    <div class="brand-mark">
+      <div class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 17h16M6 17v2M18 17v2M5 6h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
+          <path d="M3 10h18M9 6v4M15 6v4"/>
+        </svg>
+      </div>
+      <span id="brandName">OTOBÜS REZERVASYON</span>
+    </div>
+
+    <div>
+      <h1>Koltuk satışınız artık tek ekranda.</h1>
+      <p>Sefer planlama, görsel koltuk seçimi, cinsiyet kuralı kontrolü, kafile rezervasyonu ve acente satış takibi — telefondan da bilgisayardan da.</p>
+      <div class="art-features">
+        <span>🎫 Anlık koltuk kilidi</span>
+        <span>👥 Kafile / grup satışı</span>
+        <span>⚖️ Bay–bayan kuralı</span>
+        <span>📊 Acente raporları</span>
+        <span>🖨️ Yolcu listesi</span>
+      </div>
+    </div>
+
+    <p style="font-size:12.5px;color:#8ea6cc">© <span id="yr"></span> Tüm hakları saklıdır.</p>
+  </aside>
+
+  <main class="login-panel">
+    <form class="login-card" id="loginForm" autocomplete="on">
+      <h2>Hoş geldiniz</h2>
+      <p class="sub">Devam etmek için hesabınıza giriş yapın.</p>
+
+      <div class="field">
+        <label for="username">Kullanıcı adı</label>
+        <input class="input" id="username" name="username" autocomplete="username" placeholder="kullanıcı adınız" required autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Şifre</label>
+        <input class="input" id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+      </div>
+
+      <div id="loginErr" style="display:none" class="badge badge-red" role="alert"></div>
+
+      <button class="btn btn-primary btn-block" id="loginBtn" type="submit" style="margin-top:14px;padding:12px">
+        Giriş yap
+      </button>
+
+      <div class="demo-box">
+        <b>Demo hesaplar</b><br>
+        Yönetici: <code>admin</code> / <code>admin123</code><br>
+        Acente: <code>acente1</code> / <code>acente123</code>
+        <div style="margin-top:6px;font-size:11.5px">İlk girişten sonra şifrenizi değiştirmeniz önerilir.</div>
+      </div>
+    </form>
+  </main>
+
+</div>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+if (localStorage.getItem('token')) location.href = '/app.html';
+
+const form = document.getElementById('loginForm');
+const btn  = document.getElementById('loginBtn');
+const err  = document.getElementById('loginErr');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  err.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="border-top-color:#fff;border-color:rgba(255,255,255,.35);border-top-color:#fff"></span> Giriş yapılıyor…';
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Giriş başarısız.');
+    localStorage.setItem('token', d.token);
+    localStorage.setItem('user', JSON.stringify(d.user));
+    location.href = '/app.html';
+  } catch (ex) {
+    err.textContent = ex.message;
+    err.style.display = 'inline-flex';
+    btn.disabled = false;
+    btn.textContent = 'Giriş yap';
+  }
+});
+
+fetch('/api/public/settings').then(r => r.json()).then(d => {
+  if (d.company && d.company.name) {
+    document.getElementById('brandName').textContent = d.company.name;
+    document.title = 'Giriş — ' + d.company.name;
+  }
+}).catch(() => {});
+</script>
+</body>
+</html>

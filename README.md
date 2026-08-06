@@ -1,0 +1,208 @@
+# 🚌 Otobüs Koltuk, Kafile Rezervasyon ve Satış Sistemi
+
+İnternet üzerinden çalışan, telefondan ve bilgisayardan kullanılabilen, yetkili kişilerin
+giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
+
+---
+
+> **Adım adım Türkçe rehber için `KURULUM.html` dosyasını tarayıcıda açın.**
+> Kurulum, telefona ekleme ve internete açma resimli/anlatımlı olarak orada.
+
+---
+
+## Neler var?
+
+**Çoklu terminal (yeni)**
+
+- **Canlı koltuk güncellemesi**: bir acente satış yaptığı anda aynı seferi açık tutan tüm terminallerde
+  koltuk haritası kendiliğinden tazelenir, satılan koltuk yanıp söner ve "… koltuk sattı" bildirimi çıkar
+- Üst çubukta canlı bağlantı göstergesi ve o an bağlı terminal sayısı
+- Bağlantı koparsa otomatik yeniden bağlanma; çevrimdışıyken satış uyarısı
+
+**Telefon uygulaması (yeni)**
+
+- Ana ekrana eklenip tam ekran, uygulama gibi açılır (PWA) — mağazadan indirme gerekmez
+- Telefonda alt menü çubuğu, büyütülmüş koltuk dokunma alanları, alttan açılan formlar
+- İnternet kesilirse bilgilendirme ekranı; bağlantı gelince kendiliğinden geri döner
+- **Biniş kontrol ekranı**: şoför/peron görevlisi yolcuya dokunarak bindi işaretler, sayaç anlık güncellenir
+
+**Satış ve rezervasyon**
+
+- Görsel **2+2 koltuk haritası** (arka 5'li sıra desteğiyle), tıklayarak koltuk seçme
+- **Cinsiyet kuralı**: yan yana koltuklara farklı cinsiyette yabancı yolcu satılamaz — sistem otomatik engeller ve arayüzde cinsiyet butonunu kilitler
+- **Kafile / grup rezervasyonu**: tek seferde çoklu koltuk, grup adı ve yetkili kişi bilgisi, toplu iptal. Aynı kafile içinde bay–bayan yan yana oturabilir
+- **Koltuk kilidi**: iki kullanıcı aynı anda aynı koltuğu satamaz (veritabanı seviyesinde garanti)
+- Satıldı / Opsiyon (rezerve) ayrımı, Ödendi / Kısmi / Ödenmedi tahsilat takibi
+- Koltuk değiştirme, bilet iptali, bilet düzenleme
+- PNR kodu ile bilet arama (ad, telefon, T.C. no ile de aranır)
+
+**Yönetim**
+
+- Otobüs tanımları (plaka, model, sıra sayısı → kapasite otomatik hesaplanır)
+- Güzergah tanımları ve sefer planlama (**tek seferde 60 güne kadar tekrarlı sefer oluşturma**)
+- Kullanıcı yönetimi: **Yönetici** (tam yetki) ve **Acente** (yalnızca kendi sattığı biletleri görür/düzenler)
+- Firma bilgileri (bilet ve yolcu listesi çıktılarında görünür)
+- İşlem kayıtları (kim, ne zaman, ne yaptı)
+
+**Çıktı ve raporlar**
+
+- Yazdırılabilir **yolcu listesi (manifest)** — imza sütunlu, kaptana verilecek biçimde
+- Yazdırılabilir **yolcu bileti** (tekli veya kafile için toplu)
+- Satış raporları: satıcıya, güzergaha ve güne göre kırılım, tahsil edilmemiş biletler listesi
+
+**Arayüz**
+
+- Mobil ve masaüstü uyumlu (telefonda koltuk haritası dahil her şey çalışır)
+- Açık / koyu tema
+- Tamamen Türkçe
+
+---
+
+## Kurulum
+
+Gereken tek şey **Node.js 18 veya üzeri**. ([nodejs.org](https://nodejs.org) adresinden indirilir.)
+
+```bash
+# 1. Klasöre girin
+cd otobus-rezervasyon
+
+# 2. Paketleri kurun (bir kez)
+npm install
+
+# 3. Başlatın
+npm start
+```
+
+Tarayıcıdan **http://localhost:3000** adresine gidin.
+
+### Demo hesaplar
+
+| Rol | Kullanıcı adı | Şifre |
+|---|---|---|
+| Yönetici | `admin` | `admin123` |
+| Acente | `acente1` | `acente123` |
+| Acente | `acente2` | `acente123` |
+
+> **İlk iş:** Ayarlar sayfasından `admin` şifresini değiştirin ve kendi kullanıcılarınızı oluşturun.
+
+Sistem ilk açılışta örnek otobüsler, güzergahlar ve seferlerle gelir.
+Sıfırdan başlamak isterseniz `data/` klasöründeki `otobus.db*` dosyalarını silip yeniden başlatın.
+
+---
+
+## İnternete açma (canlıya alma)
+
+Veriler tek bir SQLite dosyasında (`data/otobus.db`) tutulur — ayrı bir veritabanı sunucusu kurmanız gerekmez.
+Sadece bu klasörün **kalıcı disk** üzerinde durduğundan emin olun.
+
+> **Ücretsiz plan uyarısı:** ücretsiz sunucular 15 dakika işlem olmayınca uykuya geçer ve kalıcı disk
+> vermez — bilet kayıtlarınız silinebilir. Gerçek satış için ücretli plan (≈ 7,25 $/ay) kullanın.
+
+### Seçenek 1 — Render.com Blueprint (en kolay, tek adım)
+
+Projede hazır bir `render.yaml` vardır. Render'da **New → Blueprint** deyip depoyu seçmeniz yeterli;
+bölge (Frankfurt), kalıcı disk, sağlık kontrolü ve rastgele `JWT_SECRET` kendiliğinden ayarlanır.
+
+Elle kurmak isterseniz: **New → Web Service**, Build `npm install`, Start `npm start`,
+ortam değişkenleri `JWT_SECRET` + `DATA_DIR=/veri`, ve `/veri` yoluna 1 GB disk.
+
+### Seçenek 1b — Docker
+
+```bash
+docker build -t otobus .
+docker run -d --name otobus -p 3000:3000 \
+  -e JWT_SECRET="uzun-rastgele-bir-metin" \
+  -v otobus-veri:/veri otobus
+```
+
+### Seçenek 2 — Kendi sunucunuz (VPS)
+
+```bash
+npm install
+npm install -g pm2
+JWT_SECRET="uzun-rastgele-bir-metin" pm2 start server.js --name otobus
+pm2 startup && pm2 save
+```
+
+Ardından Nginx ile 80/443 portundan yönlendirip **mutlaka SSL (https) kurun** —
+Let's Encrypt ücretsizdir. Şifreler ve oturum bilgileri şifresiz bağlantıda güvende olmaz.
+
+### Seçenek 3 — Kendi bilgisayarınız / ofis ağı
+
+`npm start` yeterlidir. Aynı ağdaki telefonlardan bilgisayarınızın yerel IP adresiyle
+(`http://192.168.1.x:3000`) girilebilir.
+
+### Ortam değişkenleri
+
+| Değişken | Varsayılan | Açıklama |
+|---|---|---|
+| `PORT` | `3000` | Sunucu portu |
+| `HOST` | `0.0.0.0` | Dinlenecek arayüz |
+| `JWT_SECRET` | *(otomatik üretilir)* | Verilmezse rastgele üretilip `data/.oturum-anahtari` dosyasına yazılır. Canlıda kendiniz vermeniz önerilir |
+| `DATA_DIR` | `./data` | Veritabanı ve yedeklerin klasörü |
+| `NODE_ENV` | `geliştirme` | `production` ise http istekleri https'e yönlendirilir |
+| `FORCE_HTTPS` | — | `1` yaparsanız NODE_ENV'den bağımsız https zorlanır |
+
+### Güvenlik özeti
+
+- Şifreler bcrypt ile saklanır, oturumlar imzalı jeton (JWT) ile yürür
+- 15 dakikada 8 hatalı girişten sonra o kullanıcı/IP için giriş geçici kilitlenir
+- `Content-Security-Policy`, `X-Frame-Options`, `nosniff`, HSTS başlıkları açıktır
+- Vekil sunucu arkasında https tespiti yapılır, çerezler https'te `secure` işaretlenir
+- Varsayılan şifre kullanılıyorsa arayüzde uyarı gösterilir
+
+Rastgele anahtar üretmek için: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+
+---
+
+## Yedekleme
+
+Tüm veri tek dosyada. Yedek almak için sunucu çalışırken bile:
+
+```bash
+cp data/otobus.db data/yedek-$(date +%F).db
+```
+
+Günlük otomatik yedek için bu satırı `crontab -e` içine ekleyebilirsiniz.
+
+---
+
+## Testler
+
+Kural ve güvenlik testleri (sunucu çalışırken):
+
+```bash
+node test-api.js
+```
+
+Cinsiyet kuralı, kafile istisnası, çift satış engeli, eşzamanlı satış yarışı,
+rol izolasyonu ve iptal senaryolarını denetler.
+
+---
+
+## Klasör yapısı
+
+```
+server.js            Sunucu girişi
+src/db.js            Veritabanı şeması, koltuk düzeni hesapları, örnek veri
+src/auth.js          Giriş, JWT, rol kontrolü
+src/api.js           Tüm API uçları (satış, iptal, rapor, tanımlar)
+public/index.html    Giriş ekranı
+public/app.html      Uygulama kabuğu
+public/js/app.js     Arayüz (koltuk haritası, satış paneli, raporlar, yazdırma)
+public/css/style.css Tasarım
+data/otobus.db       Veritabanı (otomatik oluşur)
+```
+
+---
+
+## Sonraki adımlar için notlar
+
+- **Online kredi kartı tahsilatı**: iyzico veya PayTR entegrasyonu `src/api.js` içindeki
+  satış ucuna eklenir. Akış: koltuğu `rezerve` olarak kaydet → ödeme sağlayıcısına yönlendir →
+  başarılı dönüşte `satildi` + `odendi` yap, başarısızsa iptal et.
+- **Müşteriye açık online satış sayfası**: mevcut koltuk haritası bileşeni doğrudan
+  kullanılabilir; kayıtsız kullanıcılar için ayrı bir sayfa ve "misafir" satış ucu eklenir.
+- **SMS/e-posta bilet gönderimi**: satış sonrası PNR ve koltuk bilgisi ile.
+- **Şoför ekranı**: yolcu listesi ekranındaki `boarded` (biniş) alanı hazır — mobilde
+  dokunmatik biniş kontrolü ekranı eklenebilir.

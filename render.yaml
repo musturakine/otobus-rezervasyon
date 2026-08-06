@@ -1,0 +1,24 @@
+# Render.com için hazır yapılandırma (Blueprint).
+# Render'da "New → Blueprint" deyip bu depoyu seçtiğinizde
+# aşağıdaki ayarlar kendiliğinden uygulanır.
+services:
+  - type: web
+    name: otobus-rezervasyon
+    runtime: node
+    region: frankfurt          # Türkiye'ye en yakın bölge
+    plan: starter              # Kalıcı disk için ücretli plan gerekir (free planda veriler silinir)
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /saglik
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /veri
+      - key: JWT_SECRET
+        generateValue: true    # Render rastgele güvenli bir anahtar üretir
+    disk:
+      name: veri
+      mountPath: /veri
+      sizeGB: 1
