@@ -12,7 +12,26 @@ giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
 
 ## Neler var?
 
-**Silme ve çöp kutusu (yeni)**
+**Herkese açık sefer sayfası (yeni)**
+
+- Sitenin ana sayfası artık **müşteriye açık**: `siteniz.com` adresine giren herkes
+  sefer saatlerini, fiyatları ve **koltuk doluluğunu** görebilir
+- Koltuk planında hangi koltuğun boş, hangisinin bay/bayan dolu olduğu görünür —
+  **yolcu adı, telefon, T.C. ve PNR bilgisi ASLA paylaşılmaz**
+- Ziyaretçi hiçbir şey satın alamaz, değiştiremez, silemez; sadece bakar
+- "Rezervasyon için arayın" ve **WhatsApp** düğmeleri — müşteri koltuk numarasını söyleyip yer ayırtır
+- Satışa kapalı ve geçmiş seferler açık listede görünmez
+- Personel girişi `siteniz.com/giris` adresine taşındı
+
+**Orta kapı (yeni)**
+
+- Otobüs tanımında **"orta kapı var mı, kaçıncı sırada"** seçeneği (varsayılan 6. sıra)
+- Kapı olan sırada sağdaki 2 koltuk yoktur; kapasite otomatik 2 azalır
+- Koltuk numaraları kesintisiz devam eder (… 20, **21, 22 [KAPI]**, 23, 24 …)
+- Yan koltuk cinsiyet kuralı kapı sırasında da doğru çalışır
+- Satılmış bilet varken orta kapı ayarı **kilitlenir** — koltuk numaraları kaymasın diye
+
+**Silme ve çöp kutusu**
 
 - Sefer, otobüs, güzergah, bilet, kafile, kullanıcı ve bildirim — **her yerde silme** düğmesi
 - Silmeden önce **ne gideceği açıkça gösterilir**: "Bu seferle birlikte 1 kafile, 12 bilet de silinecek"
@@ -62,7 +81,7 @@ giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
 
 **Yönetim**
 
-- Otobüs tanımları (plaka, model, sıra sayısı → kapasite otomatik hesaplanır)
+- Otobüs tanımları (plaka, model, sıra sayısı, arka sıra, orta kapı → kapasite otomatik hesaplanır)
 - Güzergah tanımları ve sefer planlama (**tek seferde 60 güne kadar tekrarlı sefer oluşturma**)
 - Kullanıcı yönetimi: **Yönetici** (tam yetki) ve **Acente** (yalnızca kendi sattığı biletleri görür/düzenler)
 - Firma bilgileri (bilet ve yolcu listesi çıktılarında görünür)
@@ -198,6 +217,7 @@ Kural ve güvenlik testleri (sunucu çalışırken):
 ```bash
 node test-api.js     # 30 test — satış kuralları
 node test-silme.js   # 40 test — silme, çöp kutusu, firma kimliği
+node test-acik.js    # 36 test — herkese açık sayfa, orta kapı, gizlilik
 ```
 
 veya ikisi birden:
@@ -208,6 +228,9 @@ npm test
 
 `test-api.js` cinsiyet kuralını, kafile istisnasını, çift satış engelini, eşzamanlı satış
 yarışını, rol izolasyonunu ve iptal senaryolarını denetler.
+
+`test-acik.js` orta kapılı koltuk düzenini, herkese açık uçların çalıştığını ve en önemlisi
+**dışarıya hiçbir kişisel bilginin sızmadığını** denetler.
 
 `test-silme.js` silme yetkilerini, silme önizlemesini, çöp kutusuna taşımayı, geri almada
 bağlı kayıtların (bilet, kafile, sefer) eksiksiz dönüşünü, kalıcı silmeyi ve logo/firma
@@ -223,7 +246,8 @@ src/db.js            Veritabanı şeması, koltuk düzeni hesapları, örnek ver
 src/auth.js          Giriş, JWT, rol kontrolü
 src/api.js           Tüm API uçları (satış, iptal, rapor, tanımlar, silme)
 src/trash.js         Çöp kutusu: silme, geri alma, otomatik temizlik
-public/index.html    Giriş ekranı
+public/anasayfa.html Herkese açık sefer ve koltuk sayfası
+public/index.html    Personel giriş ekranı (/giris)
 public/app.html      Uygulama kabuğu
 public/js/app.js     Arayüz (koltuk haritası, satış paneli, raporlar, yazdırma)
 public/css/style.css Tasarım

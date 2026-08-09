@@ -25,6 +25,10 @@ app.get('/sw.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'sw.js'));
 });
 
+/* Ana sayfa herkese açık sefer listesidir; personel girişi /giris adresindedir. */
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'anasayfa.html')));
+app.get(['/giris', '/giris.html'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
 app.use(express.static(path.join(__dirname, 'public'), {
   extensions: ['html'],
   setHeaders: (res, filePath) => {
@@ -41,8 +45,8 @@ app.get('/saglik', (req, res) => res.json({ ok: true, time: new Date().toISOStri
 // Bilinmeyen API yolları
 app.use('/api', (req, res) => res.status(404).json({ error: 'Bulunamadı.' }));
 
-// SPA fallback
-app.use((req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+// Bilinmeyen adresler ana sayfaya düşer
+app.use((req, res) => res.sendFile(path.join(__dirname, 'public', 'anasayfa.html')));
 
 app.use((err, req, res, next) => {
   console.error(err);
