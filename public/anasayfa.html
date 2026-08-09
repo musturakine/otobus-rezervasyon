@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Serhend Turizm — Sefer ve Koltuk Durumu</title>
+<meta name="description" content="Sefer saatlerimizi, güzergahlarımızı ve otobüs koltuk doluluğunu anlık olarak görüntüleyin.">
+<meta name="theme-color" content="#0b1f3a">
+<link rel="icon" href="/icons/logo-serhend.svg">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --lacivert:#0b1f3a; --lacivert-2:#12325f; --mavi:#2563eb;
+  --turkuaz:#0ea5a4; --turkuaz-acik:#5eead4;
+  --zemin:#f5f7fb; --kart:#ffffff;
+  --yazi:#0f172a; --soluk:#64748b; --cok-soluk:#94a3b8;
+  --cizgi:#e2e8f0; --cizgi-koyu:#cbd5e1;
+  --bay:#2563eb; --bay-zemin:#dbeafe; --bay-cizgi:#93c5fd;
+  --bayan:#db2777; --bayan-zemin:#fce7f3; --bayan-cizgi:#f9a8d4;
+  --bos:#059669; --bos-zemin:#ecfdf5;
+  --r:14px; --r-b:22px;
+  --golge:0 4px 14px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.05);
+  --golge-b:0 18px 45px rgba(11,31,58,.16);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Plus Jakarta Sans","Segoe UI",Roboto,-apple-system,sans-serif;
+  background:var(--zemin); color:var(--yazi); font-size:15px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.025em;line-height:1.2}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+.sar{max-width:1120px;margin:0 auto;padding:0 20px}
+
+/* ---------------- ÜST ÇUBUK ---------------- */
+.ust{position:sticky;top:0;z-index:40;background:rgba(11,31,58,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.08)}
+.ust .sar{display:flex;align-items:center;gap:14px;height:70px}
+.marka{display:flex;align-items:center;gap:12px;min-width:0}
+.marka img{width:44px;height:44px;border-radius:12px;flex-shrink:0;display:block}
+.marka .ad{color:#fff;font-weight:800;font-size:17px;letter-spacing:.01em;line-height:1.15}
+.marka .slogan{color:#9fb6d9;font-size:11.5px;font-weight:500;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.ust .bosluk{flex:1}
+.ust-dugme{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:10px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);color:#fff;
+  font-size:13.5px;font-weight:600;transition:background .15s}
+.ust-dugme:hover{background:rgba(255,255,255,.2)}
+.ust-dugme svg{width:16px;height:16px}
+.ust-tel{background:linear-gradient(135deg,var(--turkuaz),#0f766e);border-color:transparent}
+
+/* ---------------- KAHRAMAN ---------------- */
+.kahraman{position:relative;overflow:hidden;color:#fff;
+  background:linear-gradient(155deg,var(--lacivert) 0%,var(--lacivert-2) 55%,#14406e 100%);
+  padding:56px 0 92px}
+.kahraman::after{content:"";position:absolute;right:-140px;top:-90px;width:460px;height:460px;
+  border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(14,165,164,.45),transparent 62%)}
+.kahraman::before{content:"";position:absolute;left:-120px;bottom:-200px;width:420px;height:420px;
+  border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.35),transparent 65%)}
+.kahraman .sar{position:relative;z-index:2}
+.kahraman h1{font-size:clamp(28px,5vw,44px);max-width:16ch;margin-bottom:14px}
+.kahraman p{color:#c3d5f0;max-width:52ch;margin:0;font-size:16px}
+.rozetler{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+.rozetler span{background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.18);
+  padding:7px 14px;border-radius:999px;font-size:13px;font-weight:500}
+
+/* ---------------- ARAMA ---------------- */
+.arama{background:var(--kart);border-radius:var(--r-b);box-shadow:var(--golge-b);
+  padding:20px;margin-top:-58px;position:relative;z-index:5}
+.arama-grid{display:grid;grid-template-columns:1.4fr 1fr auto;gap:12px;align-items:end}
+.alan label{display:block;font-size:12px;font-weight:700;color:var(--soluk);
+  margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.girdi{width:100%;padding:13px 14px;border:1.5px solid var(--cizgi);border-radius:11px;
+  background:var(--kart);outline:none;font-size:15px;transition:border-color .15s,box-shadow .15s}
+.girdi:focus{border-color:var(--mavi);box-shadow:0 0 0 3.5px rgba(37,99,235,.14)}
+select.girdi{appearance:none;padding-right:38px;
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center;background-size:17px}
+.ara-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 26px;border:none;border-radius:11px;color:#fff;font-weight:700;font-size:15px;
+  background:linear-gradient(135deg,var(--mavi),#1d4ed8);box-shadow:0 6px 18px rgba(37,99,235,.32);
+  transition:box-shadow .15s,transform .08s}
+.ara-btn:hover{box-shadow:0 8px 24px rgba(37,99,235,.44)}
+.ara-btn:active{transform:translateY(1px)}
+.ara-btn svg{width:17px;height:17px}
+.hizli{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--cizgi)}
+.hizli button{background:var(--zemin);border:1px solid var(--cizgi);border-radius:999px;
+  padding:7px 14px;font-size:13px;font-weight:600;color:var(--soluk);transition:all .15s}
+.hizli button:hover,.hizli button.secili{background:var(--lacivert);border-color:var(--lacivert);color:#fff}
+
+/* ---------------- SEFER KARTLARI ---------------- */
+.bolum{padding:44px 0 64px}
+.bolum-bas{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.bolum-bas h2{font-size:22px}
+.sayi-rozet{background:var(--kart);border:1px solid var(--cizgi);border-radius:999px;
+  padding:4px 12px;font-size:13px;font-weight:700;color:var(--soluk)}
+.gun-bas{display:flex;align-items:center;gap:10px;margin:26px 0 12px}
+.gun-bas h3{font-size:15.5px;color:var(--lacivert)}
+.gun-bas .cizgi{flex:1;height:1px;background:var(--cizgi)}
+
+.kartlar{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.sefer{background:var(--kart);border:1px solid var(--cizgi);border-radius:var(--r);
+  padding:18px;cursor:pointer;transition:transform .12s,box-shadow .18s,border-color .18s;
+  display:flex;flex-direction:column;gap:14px}
+.sefer:hover{transform:translateY(-2px);box-shadow:var(--golge-b);border-color:var(--lacivert-2)}
+.sefer-ust{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.saat{font-size:27px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.saat small{display:block;font-size:11.5px;font-weight:600;color:var(--cok-soluk);
+  text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.fiyat{text-align:right}
+.fiyat b{font-size:21px;font-weight:800;color:var(--lacivert)}
+.fiyat small{display:block;font-size:11.5px;color:var(--cok-soluk);font-weight:600}
+.guzergah{display:flex;align-items:center;gap:11px;font-weight:700;font-size:16px}
+.guzergah .ok{color:var(--turkuaz);flex-shrink:0}
+.guzergah .ok svg{width:19px;height:19px;display:block}
+.sefer-alt{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding-top:13px;border-top:1px dashed var(--cizgi)}
+.doluluk{flex:1;min-width:0}
+.cubuk{height:7px;border-radius:99px;background:var(--cizgi);overflow:hidden;margin-bottom:6px}
+.cubuk i{display:block;height:100%;border-radius:99px;
+  background:linear-gradient(90deg,var(--turkuaz),var(--mavi))}
+.doluluk span{font-size:12.5px;color:var(--soluk);font-weight:600}
+.bak{display:inline-flex;align-items:center;gap:6px;background:var(--zemin);
+  border:1px solid var(--cizgi);border-radius:9px;padding:8px 13px;
+  font-size:13px;font-weight:700;color:var(--lacivert);white-space:nowrap}
+.sefer:hover .bak{background:var(--lacivert);border-color:var(--lacivert);color:#fff}
+.doldu{background:var(--bayan-zemin);color:var(--bayan);border-color:transparent}
+
+.bos-kutu{background:var(--kart);border:1px dashed var(--cizgi-koyu);border-radius:var(--r-b);
+  padding:56px 24px;text-align:center;color:var(--soluk)}
+.bos-kutu svg{width:46px;height:46px;opacity:.3;margin-bottom:12px}
+.bos-kutu b{display:block;font-size:17px;color:var(--yazi);margin-bottom:5px}
+
+/* ---------------- KOLTUK PENCERESİ ---------------- */
+.perde{position:fixed;inset:0;z-index:80;background:rgba(9,17,32,.6);backdrop-filter:blur(5px);
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.pencere{background:var(--kart);border-radius:var(--r-b);width:100%;max-width:560px;
+  max-height:92vh;overflow:auto;box-shadow:var(--golge-b)}
+.pencere-bas{position:sticky;top:0;background:var(--kart);z-index:2;
+  padding:20px 22px 14px;border-bottom:1px solid var(--cizgi);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pencere-bas h3{font-size:19px;margin-bottom:3px}
+.pencere-bas p{margin:0;color:var(--soluk);font-size:13.5px}
+.kapat{background:var(--zemin);border:1px solid var(--cizgi);border-radius:9px;
+  width:34px;height:34px;display:grid;place-items:center;color:var(--soluk);flex-shrink:0}
+.kapat:hover{background:var(--cizgi)}
+.kapat svg{width:17px;height:17px}
+.pencere-govde{padding:20px 22px 22px}
+
+.gosterge{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-bottom:18px;
+  padding:12px;background:var(--zemin);border-radius:12px}
+.gosterge div{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--soluk)}
+.ornek{width:17px;height:17px;border-radius:5px;border:1.5px solid}
+.ornek.bos{background:var(--bos-zemin);border-color:var(--bos)}
+.ornek.bay{background:var(--bay-zemin);border-color:var(--bay-cizgi)}
+.ornek.bayan{background:var(--bayan-zemin);border-color:var(--bayan-cizgi)}
+
+.otobus{background:var(--zemin);border:2px solid var(--cizgi-koyu);border-radius:20px 20px 14px 14px;
+  padding:16px 14px 20px;max-width:330px;margin:0 auto}
+.sofor{display:flex;justify-content:flex-end;padding:0 4px 12px;margin-bottom:12px;
+  border-bottom:2px dashed var(--cizgi-koyu)}
+.direksiyon{width:34px;height:34px;border-radius:50%;border:3px solid var(--cok-soluk);
+  display:grid;place-items:center;color:var(--cok-soluk)}
+.direksiyon svg{width:16px;height:16px}
+.sira{display:grid;grid-template-columns:1fr 1fr 22px 1fr 1fr;gap:7px;margin-bottom:7px;align-items:center}
+.sira.arka{grid-template-columns:repeat(5,1fr)}
+.koridor{text-align:center;color:var(--cizgi-koyu);font-size:11px;user-select:none}
+.koltuk{aspect-ratio:1/.92;min-height:40px;border-radius:9px;border:1.5px solid var(--cizgi-koyu);
+  background:var(--kart);display:grid;place-items:center;font-weight:800;font-size:14px;
+  color:var(--soluk);position:relative}
+.koltuk.bos{background:var(--bos-zemin);border-color:var(--bos);color:var(--bos)}
+.koltuk.bay{background:var(--bay-zemin);border-color:var(--bay-cizgi);color:var(--bay)}
+.koltuk.bayan{background:var(--bayan-zemin);border-color:var(--bayan-cizgi);color:var(--bayan)}
+.kapi{grid-column:span 2;min-height:40px;border-radius:9px;border:1.5px dashed var(--cizgi-koyu);
+  background:repeating-linear-gradient(45deg,transparent,transparent 6px,rgba(148,163,184,.16) 6px,rgba(148,163,184,.16) 12px);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:10.5px;font-weight:800;color:var(--cok-soluk);letter-spacing:.05em}
+.kapi svg{width:15px;height:15px}
+
+.ozet{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+.ozet div{background:var(--zemin);border-radius:11px;padding:12px;text-align:center}
+.ozet b{display:block;font-size:22px;font-weight:800;line-height:1.1}
+.ozet small{font-size:11.5px;color:var(--soluk);font-weight:600}
+.ozet .y b{color:var(--bos)}
+
+.cagri{background:linear-gradient(140deg,var(--lacivert),var(--lacivert-2));
+  border-radius:var(--r);padding:18px;color:#fff;text-align:center}
+.cagri p{margin:0 0 14px;font-size:13.5px;color:#c3d5f0}
+.cagri-btnlar{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+.cagri-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:11px;
+  font-weight:700;font-size:14.5px;border:none;color:#fff;transition:filter .15s}
+.cagri-btn:hover{filter:brightness(1.1)}
+.cagri-btn svg{width:17px;height:17px}
+.btn-tel{background:linear-gradient(135deg,var(--turkuaz),#0f766e)}
+.btn-wa{background:linear-gradient(135deg,#25d366,#128c7e)}
+
+/* ---------------- ALT BİLGİ ---------------- */
+.alt{background:var(--lacivert);color:#9fb6d9;padding:40px 0 30px;margin-top:20px}
+.alt-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px;margin-bottom:28px}
+.alt h4{color:#fff;font-size:14px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.06em}
+.alt p,.alt li{font-size:14px;margin:0 0 8px;line-height:1.65}
+.alt ul{list-style:none;padding:0;margin:0}
+.alt a:hover{color:#fff}
+.alt .iletisim{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px}
+.alt .iletisim svg{width:16px;height:16px;flex-shrink:0;margin-top:4px;color:var(--turkuaz-acik)}
+.alt-son{border-top:1px solid rgba(255,255,255,.1);padding-top:20px;
+  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:13px}
+
+.yukleniyor{text-align:center;padding:56px;color:var(--soluk)}
+.donen{display:inline-block;width:22px;height:22px;border:2.5px solid var(--cizgi);
+  border-top-color:var(--mavi);border-radius:50%;animation:don .7s linear infinite;vertical-align:-5px;margin-right:9px}
+@keyframes don{to{transform:rotate(360deg)}}
+
+@media (max-width:860px){
+  .arama-grid{grid-template-columns:1fr}
+  .alt-grid{grid-template-columns:1fr;gap:24px}
+  .kahraman{padding:40px 0 82px}
+}
+@media (max-width:560px){
+  .ust .sar{height:62px;gap:9px}
+  .marka img{width:38px;height:38px}
+  .marka .ad{font-size:15px}
+  .marka .slogan{display:none}
+  .ust-dugme span{display:none}
+  .ust-dugme{padding:9px 11px}
+  .kartlar{grid-template-columns:1fr}
+  .arama{border-radius:18px;padding:16px}
+  .girdi{font-size:16px}
+  .perde{padding:0;align-items:flex-end}
+  .pencere{max-width:100%;border-radius:20px 20px 0 0;max-height:94vh}
+  .sefer{padding:15px}
+}
+</style>
+</head>
+<body>
+
+<header class="ust">
+  <div class="sar">
+    <a class="marka" href="/">
+      <img id="logo" src="/icons/logo-serhend.svg" alt="">
+      <div style="min-width:0">
+        <div class="ad" id="firmaAdi">SERHEND TURİZM</div>
+        <div class="slogan" id="firmaSlogan"></div>
+      </div>
+    </a>
+    <div class="bosluk"></div>
+    <a class="ust-dugme ust-tel" id="telUst" href="#" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.4 1.8.6 2.8.8A2 2 0 0 1 22 16.9z"/></svg>
+      <span id="telUstYazi">Bizi arayın</span>
+    </a>
+    <a class="ust-dugme" href="/giris">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+      <span>Personel girişi</span>
+    </a>
+  </div>
+</header>
+
+<section class="kahraman">
+  <div class="sar">
+    <h1>Seferlerimizi ve boş koltukları anlık görün.</h1>
+    <p>Hangi koltuk boş, hangisi dolu — otobüsün koltuk planını buradan inceleyebilirsiniz.
+       Yerinizi ayırtmak için bizi aramanız yeterli.</p>
+    <div class="rozetler">
+      <span>🚌 Güncel sefer saatleri</span>
+      <span>💺 Anlık koltuk durumu</span>
+      <span>⚖️ Bay–bayan yerleşimi</span>
+      <span>📞 Telefonla rezervasyon</span>
+    </div>
+  </div>
+</section>
+
+<div class="sar">
+  <div class="arama">
+    <div class="arama-grid">
+      <div class="alan">
+        <label for="guzergah">Güzergah</label>
+        <select class="girdi" id="guzergah"><option value="">Tüm güzergahlar</option></select>
+      </div>
+      <div class="alan">
+        <label for="tarih">Gidiş tarihi</label>
+        <input class="girdi" type="date" id="tarih">
+      </div>
+      <button class="ara-btn" id="araBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        Sefer ara
+      </button>
+    </div>
+    <div class="hizli" id="hizliTarih"></div>
+  </div>
+</div>
+
+<main class="sar bolum">
+  <div class="bolum-bas">
+    <h2>Seferler</h2>
+    <span class="sayi-rozet" id="sayac">yükleniyor…</span>
+  </div>
+  <div id="liste"><div class="yukleniyor"><span class="donen"></span> Seferler yükleniyor…</div></div>
+</main>
+
+<footer class="alt">
+  <div class="sar">
+    <div class="alt-grid">
+      <div>
+        <h4 id="altFirma">Serhend Turizm</h4>
+        <p id="altSlogan" style="margin-bottom:14px"></p>
+        <p style="font-size:13px;color:#7f9ac4">Bu sayfa yalnızca bilgilendirme amaçlıdır.
+           Sefer saatleri ve koltuk durumu anlık olarak güncellenir.</p>
+      </div>
+      <div>
+        <h4>İletişim</h4>
+        <div id="iletisimKutu"></div>
+      </div>
+      <div>
+        <h4>Bağlantılar</h4>
+        <ul>
+          <li><a href="/">Sefer listesi</a></li>
+          <li><a href="/giris">Personel girişi</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="alt-son">
+      <span>© <span id="yil"></span> <span id="altFirma2">Serhend Turizm</span> — Tüm hakları saklıdır.</span>
+      <span>Bilet satışı yalnızca gişe ve telefon üzerindendir.</span>
+    </div>
+  </div>
+</footer>
+
+<div id="pencereKok"></div>
+
+<script>
+'use strict';
+
+/* ----------------------------- Yardımcılar ----------------------------- */
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TL = (n) => (Number(n) || 0).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' ₺';
+const AYLAR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+const GUNLER = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+
+function trTarih(iso) {
+  if (!iso) return '';
+  const [y, a, g] = iso.slice(0, 10).split('-').map(Number);
+  const d = new Date(y, a - 1, g);
+  return `${g} ${AYLAR[a - 1]} ${y}, ${GUNLER[d.getDay()]}`;
+}
+const bugun = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const gunEkle = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+function sure(dk) {
+  if (!dk) return '';
+  const s = Math.floor(dk / 60), k = dk % 60;
+  return s ? (k ? `${s} sa ${k} dk` : `${s} saat`) : `${k} dk`;
+}
+const ikon = {
+  ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  kapi: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M12 3v18"/></svg>',
+  bos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>',
+  direksiyon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 9V3M9.5 14L4.5 18M14.5 14l5 4"/></svg>',
+  tel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.4 1.8.6 2.8.8A2 2 0 0 1 22 16.9z"/></svg>',
+  wa: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.1-.7.2-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5 0-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3z"/><path d="M20.5 3.5A11 11 0 0 0 3.2 17L2 22l5.2-1.2A11 11 0 1 0 20.5 3.5zm-8.4 17a9 9 0 0 1-4.6-1.3l-.3-.2-3.1.7.7-3-.2-.3a9 9 0 1 1 7.5 4.1z"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>',
+  web: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>'
+};
+
+let FIRMA = {};
+
+/* ----------------------------- Firma bilgisi ----------------------------- */
+async function firmaYukle() {
+  try {
+    const d = await fetch('/api/public/settings').then((r) => r.json());
+    FIRMA = d.company || {};
+  } catch { FIRMA = {}; }
+
+  const ad = FIRMA.name || 'SERHEND TURİZM';
+  $('#firmaAdi').textContent = ad;
+  $('#altFirma').textContent = ad;
+  $('#altFirma2').textContent = ad;
+  document.title = ad + ' — Sefer ve Koltuk Durumu';
+  if (FIRMA.slogan) { $('#firmaSlogan').textContent = FIRMA.slogan; $('#altSlogan').textContent = FIRMA.slogan; }
+  if (FIRMA.logo) $('#logo').src = FIRMA.logo;
+
+  if (FIRMA.phone) {
+    const t = $('#telUst');
+    t.href = 'tel:' + FIRMA.phone.replace(/[^0-9+]/g, '');
+    $('#telUstYazi').textContent = FIRMA.phone;
+    t.style.display = '';
+  }
+
+  const kutu = $('#iletisimKutu');
+  const satir = (ik, metin, baglanti) =>
+    `<div class="iletisim">${ik}<div>${baglanti ? `<a href="${baglanti}">${esc(metin)}</a>` : esc(metin)}</div></div>`;
+  let h = '';
+  if (FIRMA.phone) h += satir(ikon.tel, FIRMA.phone, 'tel:' + FIRMA.phone.replace(/[^0-9+]/g, ''));
+  if (FIRMA.address) h += satir(ikon.pin, FIRMA.address);
+  if (FIRMA.website) h += satir(ikon.web, FIRMA.website, (/^https?:/.test(FIRMA.website) ? '' : 'https://') + FIRMA.website);
+  kutu.innerHTML = h || '<p style="font-size:13px">İletişim bilgisi henüz girilmemiş.</p>';
+}
+
+/* ----------------------------- Güzergahlar ----------------------------- */
+async function guzergahlariYukle() {
+  try {
+    const r = await fetch('/api/public/routes').then((x) => x.json());
+    const s = $('#guzergah');
+    r.forEach((g) => {
+      const o = document.createElement('option');
+      o.value = g.id;
+      o.textContent = `${g.origin} → ${g.destination}`;
+      s.appendChild(o);
+    });
+  } catch { /* önemsiz */ }
+}
+
+/* ----------------------------- Hızlı tarih düğmeleri ----------------------------- */
+function hizliTarihler() {
+  const b = bugun();
+  const secenekler = [
+    { e: 'Tümü', d: '' },
+    { e: 'Bugün', d: b },
+    { e: 'Yarın', d: gunEkle(b, 1) },
+    { e: trTarih(gunEkle(b, 2)).split(',')[0], d: gunEkle(b, 2) },
+    { e: trTarih(gunEkle(b, 3)).split(',')[0], d: gunEkle(b, 3) }
+  ];
+  $('#hizliTarih').innerHTML = secenekler
+    .map((s) => `<button data-t="${s.d}">${esc(s.e)}</button>`).join('');
+  $('#hizliTarih').querySelectorAll('button').forEach((btn) => {
+    btn.onclick = () => {
+      $('#tarih').value = btn.dataset.t;
+      seferleriYukle();
+    };
+  });
+}
+
+/* ----------------------------- Sefer listesi ----------------------------- */
+async function seferleriYukle() {
+  const kutu = $('#liste');
+  kutu.innerHTML = '<div class="yukleniyor"><span class="donen"></span> Seferler yükleniyor…</div>';
+
+  const p = new URLSearchParams();
+  const t = $('#tarih').value;
+  const g = $('#guzergah').value;
+  if (t) p.set('date', t);
+  if (g) p.set('route_id', g);
+
+  const secili = $('#tarih').value || '';
+  $('#hizliTarih').querySelectorAll('button')
+    .forEach((b) => b.classList.toggle('secili', b.dataset.t === secili));
+
+  let liste = [];
+  try {
+    liste = await fetch('/api/public/trips?' + p.toString()).then((r) => r.json());
+  } catch {
+    kutu.innerHTML = `<div class="bos-kutu">${ikon.bos}<b>Bağlantı kurulamadı</b>
+      <div>İnternet bağlantınızı kontrol edip sayfayı yenileyin.</div></div>`;
+    return;
+  }
+
+  $('#sayac').textContent = liste.length ? `${liste.length} sefer` : 'sefer yok';
+
+  if (!liste.length) {
+    kutu.innerHTML = `<div class="bos-kutu">${ikon.bos}<b>Bu kriterlere uygun sefer bulunamadı</b>
+      <div>Farklı bir tarih veya güzergah seçmeyi deneyin.</div></div>`;
+    return;
+  }
+
+  const gunlere = {};
+  liste.forEach((s) => { (gunlere[s.depart_date] = gunlere[s.depart_date] || []).push(s); });
+
+  kutu.innerHTML = Object.keys(gunlere).sort().map((gun) => `
+    <div class="gun-bas"><h3>${esc(trTarih(gun))}</h3><span class="sayi-rozet">${gunlere[gun].length} sefer</span><div class="cizgi"></div></div>
+    <div class="kartlar">
+      ${gunlere[gun].map((s) => {
+        const oran = Math.round(((s.capacity - s.empty) / s.capacity) * 100);
+        const doluMu = s.empty <= 0;
+        return `<article class="sefer" data-id="${s.id}">
+          <div class="sefer-ust">
+            <div class="saat">${esc(s.depart_time)}<small>Kalkış</small></div>
+            <div class="fiyat"><b>${TL(s.price)}</b><small>kişi başı</small></div>
+          </div>
+          <div class="guzergah">
+            <span>${esc(s.origin)}</span>
+            <span class="ok">${ikon.ok}</span>
+            <span>${esc(s.destination)}</span>
+          </div>
+          ${s.duration_min ? `<div style="font-size:12.5px;color:var(--cok-soluk);margin-top:-8px">Tahmini süre: ${sure(s.duration_min)}</div>` : ''}
+          <div class="sefer-alt">
+            <div class="doluluk">
+              <div class="cubuk"><i style="width:${oran}%"></i></div>
+              <span>${doluMu ? 'Koltuk kalmadı' : `<b>${s.empty}</b> koltuk boş`} · ${s.capacity} kişilik</span>
+            </div>
+            <span class="bak ${doluMu ? 'doldu' : ''}">${doluMu ? 'DOLU' : 'Koltukları gör'}</span>
+          </div>
+        </article>`;
+      }).join('')}
+    </div>`).join('');
+
+  kutu.querySelectorAll('.sefer').forEach((el) => {
+    el.onclick = () => koltuklariAc(+el.dataset.id);
+  });
+}
+
+/* ----------------------------- Koltuk penceresi ----------------------------- */
+function pencereKapat() { $('#pencereKok').innerHTML = ''; document.body.style.overflow = ''; }
+
+async function koltuklariAc(id) {
+  const kok = $('#pencereKok');
+  document.body.style.overflow = 'hidden';
+  kok.innerHTML = `<div class="perde"><div class="pencere"><div class="yukleniyor">
+    <span class="donen"></span> Koltuk planı yükleniyor…</div></div></div>`;
+
+  let d;
+  try {
+    d = await fetch('/api/public/trips/' + id + '/seatmap').then((r) => r.json());
+    if (d.error) throw new Error(d.error);
+  } catch {
+    kok.innerHTML = `<div class="perde"><div class="pencere"><div class="pencere-govde">
+      <div class="bos-kutu">${ikon.bos}<b>Koltuk planı alınamadı</b>
+      <div>Sefer kaldırılmış olabilir. Lütfen sayfayı yenileyin.</div></div>
+      <div style="text-align:center;margin-top:14px"><button class="cagri-btn btn-tel" onclick="pencereKapat()">Kapat</button></div>
+      </div></div></div>`;
+    return;
+  }
+
+  const t = d.trip;
+  const koltukHarita = new Map(d.seats.map((s) => [s.seat_no, s]));
+
+  const koltukHtml = (n) => {
+    const s = koltukHarita.get(n);
+    if (!s) return '<div></div>';
+    const sinif = !s.occupied ? 'bos' : (s.gender === 'K' ? 'bayan' : 'bay');
+    const baslik = !s.occupied
+      ? (s.requires_gender ? `${n} nolu koltuk boş — yanı ${s.requires_gender === 'K' ? 'bayan' : 'bay'} yolcu` : `${n} nolu koltuk boş`)
+      : `${n} nolu koltuk dolu (${s.gender === 'K' ? 'bayan' : 'bay'})`;
+    return `<div class="koltuk ${sinif}" title="${esc(baslik)}">${n}</div>`;
+  };
+
+  const planHtml = d.layout.map((sira) => {
+    if (sira.type === 'door') {
+      return `<div class="sira">${koltukHtml(sira.seats[0])}${koltukHtml(sira.seats[1])}
+        <div class="koridor">▮</div>
+        <div class="kapi">${ikon.kapi}<span>ORTA KAPI</span></div></div>`;
+    }
+    if (sira.type === 'back') {
+      return `<div class="sira arka">${sira.seats.map(koltukHtml).join('')}</div>`;
+    }
+    return `<div class="sira">${sira.seats.map((n) => n === null ? '<div class="koridor">▮</div>' : koltukHtml(n)).join('')}</div>`;
+  }).join('');
+
+  const tel = (FIRMA.phone || '').replace(/[^0-9+]/g, '');
+  const waMetin = encodeURIComponent(
+    `Merhaba, ${t.depart_date} tarihli ${t.depart_time} ${t.origin} - ${t.destination} seferi için yer ayırtmak istiyorum.`);
+  const waNo = tel.replace(/^0/, '90').replace(/^\+/, '');
+
+  kok.innerHTML = `<div class="perde" id="perde">
+    <div class="pencere">
+      <div class="pencere-bas">
+        <div>
+          <h3>${esc(t.origin)} → ${esc(t.destination)}</h3>
+          <p>${esc(trTarih(t.depart_date))} · <b>${esc(t.depart_time)}</b> · ${TL(t.price)}</p>
+        </div>
+        <button class="kapat" id="kapatBtn" aria-label="Kapat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="pencere-govde">
+        <div class="gosterge">
+          <div><span class="ornek bos"></span> Boş</div>
+          <div><span class="ornek bay"></span> Bay dolu</div>
+          <div><span class="ornek bayan"></span> Bayan dolu</div>
+        </div>
+
+        <div class="otobus">
+          <div class="sofor"><div class="direksiyon">${ikon.direksiyon}</div></div>
+          ${planHtml}
+        </div>
+
+        <div class="ozet">
+          <div class="y"><b>${d.stats.bos}</b><small>BOŞ KOLTUK</small></div>
+          <div><b>${d.stats.dolu}</b><small>DOLU KOLTUK</small></div>
+        </div>
+
+        <div class="cagri">
+          <p><b style="color:#fff;font-size:15px;display:block;margin-bottom:5px">Yerinizi ayırtmak için bizi arayın</b>
+             Bu sayfadan bilet satışı yapılmaz. Beğendiğiniz koltuğun numarasını söylemeniz yeterli.</p>
+          <div class="cagri-btnlar">
+            ${tel ? `<a class="cagri-btn btn-tel" href="tel:${esc(tel)}">${ikon.tel} ${esc(FIRMA.phone)}</a>` : ''}
+            ${tel ? `<a class="cagri-btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/${esc(waNo)}?text=${waMetin}">${ikon.wa} WhatsApp</a>` : ''}
+            ${!tel ? '<span style="font-size:13.5px">İletişim numarası yönetici tarafından henüz girilmemiş.</span>' : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  $('#kapatBtn').onclick = pencereKapat;
+  $('#perde').onclick = (e) => { if (e.target.id === 'perde') pencereKapat(); };
+  document.addEventListener('keydown', function esc2(e) {
+    if (e.key === 'Escape') { pencereKapat(); document.removeEventListener('keydown', esc2); }
+  });
+}
+window.pencereKapat = pencereKapat;
+
+/* ----------------------------- Başlat ----------------------------- */
+$('#yil').textContent = new Date().getFullYear();
+$('#tarih').min = bugun();
+$('#araBtn').onclick = seferleriYukle;
+$('#guzergah').onchange = seferleriYukle;
+$('#tarih').onchange = seferleriYukle;
+hizliTarihler();
+
+(async () => {
+  await firmaYukle();
+  await guzergahlariYukle();
+  await seferleriYukle();
+})();
+
+// Sayfa açık kalırsa koltuk durumu bayatlamasın
+setInterval(() => { if (!$('#pencereKok').innerHTML) seferleriYukle(); }, 120000);
+</script>
+</body>
+</html>

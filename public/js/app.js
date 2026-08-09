@@ -71,13 +71,7 @@ const ICON = {
   bell: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
-  empty: '<path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>',
-  trash: '<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>',
-  undo: '<path d="M3 7v6h6"/><path d="M3.5 13a9 9 0 1 0 2.1-9.4L3 7"/>',
-  help: '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
-  info: '<circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/>',
-  edit: '<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>',
-  star: '<path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21.1 7 14.2l-5-4.9 6.9-1L12 2z"/>'
+  empty: '<path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>'
 };
 const svg = (k, size = 18) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[k] || ''}</svg>`;
@@ -122,165 +116,6 @@ function confirmBox(title, text, okLabel = 'Evet, devam et', danger = true) {
   });
 }
 
-/* ==========================================================================
-   SİLME — çöp kutusu mantığı
-   --------------------------------------------------------------------------
-   Hiçbir şey anında yok olmaz. Silmeden önce kullanıcıya tam olarak neyin
-   gideceği gösterilir, silindikten sonra da "Geri al" düğmesi çıkar.
-   ========================================================================== */
-
-/** Silinen kayıt için "Geri al" düğmeli bildirim. */
-function geriAlBildirimi(mesaj, trashId, sonra) {
-  const el = document.createElement('div');
-  el.className = 'toast undo';
-  el.innerHTML = `${svg('trash', 18)}
-    <div style="flex:1">
-      <div>${esc(mesaj)}</div>
-      <div class="toast-sub">Çöp kutusunda 30 gün saklanacak.</div>
-    </div>
-    <button class="toast-btn">${svg('undo', 15)} Geri al</button>`;
-  document.getElementById('toasts').appendChild(el);
-
-  let kapandi = false;
-  const kapat = () => {
-    if (kapandi) return; kapandi = true;
-    el.style.opacity = '0'; el.style.transform = 'translateX(18px)'; el.style.transition = 'all .2s';
-    setTimeout(() => el.remove(), 220);
-  };
-  el.querySelector('.toast-btn').onclick = async () => {
-    try {
-      const r = await api('/trash/' + trashId + '/restore', { method: 'POST' });
-      toast(`${r.tur} geri alındı: ${r.label}`);
-      kapat(); sonra && sonra(); copSayisiniTazele();
-    } catch (ex) { toast(ex.message, 'err', 7000); }
-  };
-  setTimeout(kapat, 9000);
-}
-
-/**
- * Silme akışı: önce "ne gidecek" gösterilir, onaylanırsa silinir.
- * tur: 'Sefer' gibi görünen ad · yol: '/trips' gibi API yolu
- */
-async function silAkisi({ tur, yol, id, sonra }) {
-  let onizleme = null;
-  try { onizleme = await api(`${yol}/${id}/silme-onizleme`); }
-  catch (ex) { toast(ex.message, 'err'); return; }
-
-  const c = onizleme.counts || {};
-  const birlikte = [];
-  if (yol !== '/trips' && c.trips) birlikte.push(`${c.trips} sefer`);
-  if (c.groups) birlikte.push(`${c.groups} kafile`);
-  if (yol !== '/tickets' && c.tickets) birlikte.push(`${c.tickets} bilet`);
-
-  const uyari = birlikte.length
-    ? `<div class="warn-box">${svg('warn', 18)}
-         <div><b>Bunlar da birlikte silinecek:</b><br>${birlikte.join(', ')}</div>
-       </div>`
-    : '';
-
-  const onay = await new Promise((resolve) => {
-    const close = modal({
-      title: `${tur} silinsin mi?`,
-      body: `
-        <div class="del-target">${esc(onizleme.label)}</div>
-        ${uyari}
-        <div class="info-box">${svg('info', 18)}
-          <div>Bu kayıt <b>çöp kutusuna</b> gidecek. Yanlışlıkla sildiyseniz
-          30 gün içinde geri alabilirsiniz.</div>
-        </div>`,
-      footer: `<button class="btn btn-ghost" id="dno">Vazgeç</button>
-               <button class="btn btn-danger" id="dyes">${svg('trash', 15)} Evet, sil</button>`
-    });
-    document.getElementById('dno').onclick = () => { close(); resolve(false); };
-    document.getElementById('dyes').onclick = () => { close(); resolve(true); };
-  });
-  if (!onay) return;
-
-  try {
-    const r = await api(`${yol}/${id}`, { method: 'DELETE' });
-    geriAlBildirimi(`${tur} silindi: ${r.label}`, r.trash_id, sonra);
-    sonra && sonra();
-    copSayisiniTazele();
-  } catch (ex) { toast(ex.message, 'err', 7000); }
-}
-
-/** Listelerde kullanılan küçük sil düğmesi. */
-const silBtn = (tur, yol, id, sonraFn = 'refreshCurrent') =>
-  `<button class="btn btn-icon btn-danger-soft" title="${esc(tur)} sil"
-     onclick="event.stopPropagation();silAkisi({tur:'${esc(tur)}',yol:'${yol}',id:${id},sonra:${sonraFn}})">${svg('trash', 15)}</button>`;
-
-/** Menüdeki çöp kutusu rozetini günceller. */
-async function copSayisiniTazele() {
-  if (!S.user || S.user.role !== 'admin') return;
-  try {
-    const r = await api('/trash/count');
-    S.copSayisi = r.count;
-    document.querySelectorAll('.nav-item[data-page="cop"] .nav-badge').forEach((el) => {
-      el.textContent = r.count || '';
-      el.style.display = r.count ? '' : 'none';
-    });
-  } catch { /* önemsiz */ }
-}
-
-/* ==========================================================================
-   FİRMA KİMLİĞİ
-   ========================================================================== */
-
-/** Seçilen resmi tarayıcıda küçültüp veri adresine (data URL) çevirir. */
-function kucultResim(file, enBuyukKenar = 320) {
-  return new Promise((resolve, reject) => {
-    const fr = new FileReader();
-    fr.onerror = reject;
-    fr.onload = () => {
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        const oran = Math.min(1, enBuyukKenar / Math.max(img.width, img.height));
-        const w = Math.max(1, Math.round(img.width * oran));
-        const h = Math.max(1, Math.round(img.height * oran));
-        const cv = document.createElement('canvas');
-        cv.width = w; cv.height = h;
-        cv.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(cv.toDataURL('image/png'));
-      };
-      img.src = fr.result;
-    };
-    fr.readAsDataURL(file);
-  });
-}
-
-/** Firma adı, sloganı ve logosunu arayüze işler. */
-function uygulaMarka() {
-  const c = S.company || {};
-  const ad = document.getElementById('sideBrand');
-  if (ad) ad.textContent = c.name || 'REZERVASYON';
-  const sl = document.getElementById('sideSlogan');
-  if (sl) { sl.textContent = c.slogan || ''; sl.style.display = c.slogan ? '' : 'none'; }
-  const kutu = document.getElementById('sideLogo');
-  if (kutu) {
-    if (c.logo) { kutu.innerHTML = `<img src="${c.logo}" alt="">`; kutu.classList.add('has-img'); }
-    else kutu.classList.remove('has-img');
-  }
-  document.title = (c.name ? c.name + ' — ' : '') + 'Rezervasyon Sistemi';
-}
-
-/** Yazdırma çıktılarının üst başlığı (bilet, yolcu listesi). */
-function ciktiBasligi(c, altBaslik) {
-  return `<div class="head">
-    <div class="head-left">
-      ${c.logo ? `<img class="head-logo" src="${c.logo}" alt="">` : ''}
-      <div><h1>${esc(c.name || '')}</h1>
-        ${c.slogan ? `<div class="head-slogan">${esc(c.slogan)}</div>` : ''}
-        <h2>${esc(altBaslik)}</h2></div>
-    </div>
-    <div class="head-right muted">
-      ${c.phone ? esc(c.phone) + '<br>' : ''}
-      ${c.website ? esc(c.website) + '<br>' : ''}
-      ${c.address ? esc(c.address) : ''}
-    </div>
-  </div>`;
-}
-
 const view = () => document.getElementById('view');
 const loading = () => { view().innerHTML = '<div class="loading-box"><span class="spinner"></span> Yükleniyor…</div>'; };
 
@@ -302,8 +137,7 @@ const MENU = [
     { id: 'kullanicilar', label: 'Kullanıcılar', icon: 'users' },
     { id: 'ayarlar', label: 'Ayarlar', icon: 'cog' },
     { id: 'bildirimler', label: 'Gönderim Kayıtları', icon: 'bell' },
-    { id: 'kayitlar', label: 'İşlem Kayıtları', icon: 'log' },
-    { id: 'cop', label: 'Çöp Kutusu', icon: 'trash', badge: true }
+    { id: 'kayitlar', label: 'İşlem Kayıtları', icon: 'log' }
   ]}
 ];
 
@@ -312,12 +146,11 @@ function renderNav() {
   const isAdmin = S.user.role === 'admin';
   nav.innerHTML = MENU.filter((g) => !g.admin || isAdmin).map((g) => `
     <div class="nav-title">${g.g}</div>
-    ${g.items.map((i) => `<div class="nav-item" data-page="${i.id}">${svg(i.icon)}<span>${i.label}</span>${i.badge ? '<b class="nav-badge" style="display:none"></b>' : ''}</div>`).join('')}
+    ${g.items.map((i) => `<div class="nav-item" data-page="${i.id}">${svg(i.icon)}<span>${i.label}</span></div>`).join('')}
   `).join('');
   nav.querySelectorAll('.nav-item').forEach((el) => {
     el.onclick = () => { location.hash = '#/' + el.dataset.page; closeSidebar(); };
   });
-  copSayisiniTazele();
 }
 const BOTTOM = [
   { id: 'panel', label: 'Panel', icon: 'panel' },
@@ -494,101 +327,7 @@ async function pagePanel() {
     </div>`;
 }
 
-/**
- * Boş ekran kutusu.
- * ek.buton  : { yazi, tikla }  — yönlendiren düğme
- * ek.adimlar: ['...','...']    — ne yapılacağını anlatan numaralı liste
- */
-const emptyBox = (t, s = '', ek = {}) => `<div class="empty">
-  ${svg('empty', 46)}<b>${esc(t)}</b>
-  ${s ? `<div style="font-size:13px">${esc(s)}</div>` : ''}
-  ${ek.adimlar && ek.adimlar.length
-    ? `<ol class="empty-steps">${ek.adimlar.map((a) => `<li>${a}</li>`).join('')}</ol>` : ''}
-  ${ek.buton ? `<div class="empty-action">
-      <button class="btn btn-primary" onclick="${ek.buton.tikla}">${svg('plus', 16)} ${esc(ek.buton.yazi)}</button>
-    </div>` : ''}
-</div>`;
-
-/* ==========================================================================
-   EKRANDA YOL GÖSTERME
-   --------------------------------------------------------------------------
-   Her sayfada "burada ne yapılır" açıklaması. Kullanıcı kapatınca bir daha
-   çıkmaz, ama Ayarlar'dan hepsi birden geri açılabilir.
-   ========================================================================== */
-const IPUCU_ANAHTAR = 'ipucu-kapali';
-const kapaliIpuclari = () => { try { return JSON.parse(localStorage.getItem(IPUCU_ANAHTAR) || '[]'); } catch { return []; } };
-
-function ipucuKapat(id) {
-  const l = kapaliIpuclari();
-  if (!l.includes(id)) l.push(id);
-  localStorage.setItem(IPUCU_ANAHTAR, JSON.stringify(l));
-  const el = document.getElementById('ipucu-' + id);
-  if (el) el.remove();
-}
-function tumIpuclariniAc() {
-  localStorage.removeItem(IPUCU_ANAHTAR);
-  toast('Tüm açıklamalar yeniden gösterilecek.');
-}
-
-/** Sayfa başına açıklama kutusu üretir. */
-function ipucu(id, baslik, metin) {
-  if (kapaliIpuclari().includes(id)) return '';
-  return `<div class="tip-box" id="ipucu-${id}">
-    ${svg('help', 18)}
-    <div style="flex:1"><b>${esc(baslik)}</b><br>${metin}</div>
-    <button class="tip-close" title="Bu açıklamayı bir daha gösterme" onclick="ipucuKapat('${id}')">${svg('x', 15)}</button>
-  </div>`;
-}
-
-/** Başlık yanındaki soru işareti — üzerine gelince açıklama gösterir. */
-const yardim = (metin) => `<span class="help-dot" title="${esc(metin)}">${svg('help')}</span>`;
-
-/* ---- İlk giriş karşılaması: sistemi hiç görmemiş kişiye yol haritası ---- */
-const KARSILAMA_ANAHTAR = 'karsilama-gosterildi';
-
-function karsilamaGoster(zorla) {
-  if (!zorla && localStorage.getItem(KARSILAMA_ANAHTAR)) return;
-  localStorage.setItem(KARSILAMA_ANAHTAR, '1');
-  const yonetici = S.user.role === 'admin';
-
-  const adimlar = yonetici ? [
-    ['route',  'Güzergahları girin',  'Hangi şehirler arasında çalışıyorsunuz? Gidiş ve dönüş ayrı ayrı eklenir.', '#/guzergahlar'],
-    ['bus',    'Otobüsleri tanıtın',  'Plaka ve kaç sıra koltuk olduğunu yazın; kapasiteyi sistem hesaplar.', '#/otobusler'],
-    ['clock',  'Sefer açın',          'Tarih, saat ve fiyat verin. İsterseniz "30 gün tekrarla" deyip bir ayı tek seferde doldurun.', '#/seferler'],
-    ['ticket', 'Bilet satmaya başlayın', 'Sefere tıklayın, koltuk haritasından boş koltuk seçin, yolcuyu yazın.', '#/seferler']
-  ] : [
-    ['bus',    'Sefer seçin',    'Seferler ekranından satış yapacağınız seferi bulun ve tıklayın.', '#/seferler'],
-    ['ticket', 'Koltuk seçin',   'Boş koltuklara tıklayın, yolcu adını ve cinsiyetini girin.', '#/seferler'],
-    ['send',   'Bileti gönderin','Satıştan sonra yolcuya WhatsApp veya SMS ile bilet gönderebilirsiniz.', '#/biletler'],
-    ['check',  'Biniş kontrolü', 'Kalkış anında yolcuları listeden tek tek işaretleyin.', '#/binis']
-  ];
-
-  modal({
-    wide: true,
-    title: `Hoş geldiniz, ${esc(S.user.full_name.split(' ')[0])} 👋`,
-    body: `
-      <p style="margin:0 0 18px;color:var(--muted)">
-        ${yonetici
-          ? 'Sistemi ilk kez kullanıyorsunuz. Aşağıdaki dört adımı sırayla yaparsanız bilet satmaya hazır olursunuz.'
-          : 'Bilet satışına başlamak için bilmeniz gereken her şey aşağıda.'}
-      </p>
-      <div class="tour-list">
-        ${adimlar.map(([ikon, baslik, aciklama, yol], i) => `
-          <div class="tour-step" onclick="closeModal();location.hash='${yol}'">
-            <div class="tour-num">${i + 1}</div>
-            <div class="tour-ico">${svg(ikon, 20)}</div>
-            <div><b>${esc(baslik)}</b><div>${esc(aciklama)}</div></div>
-          </div>`).join('')}
-      </div>
-      ${yonetici ? `<div class="warn-box" style="margin:16px 0 0">${svg('warn', 18)}
-        <div><b>Önce şunu yapın:</b> Ayarlar ekranından <b>şifrenizi değiştirin</b> ve
-        firma adınızı/logonuzu girin. Sistem internete açık olduğu için bu önemli.</div></div>` : ''}
-      <div class="tip-box" style="margin:14px 0 0">${svg('help', 18)}
-        <div>Her ekranda böyle gri açıklama kutuları göreceksiniz. Okuyup kapattığınızda bir daha
-        çıkmazlar. Hepsini geri açmak isterseniz <b>Ayarlar → Yardım</b> bölümünü kullanın.</div></div>`,
-    footer: `<button class="btn btn-primary" onclick="closeModal()">Anladım, başlayalım</button>`
-  });
-}
+const emptyBox = (t, s = '') => `<div class="empty">${svg('empty', 46)}<b>${esc(t)}</b>${s ? `<div style="font-size:13px">${esc(s)}</div>` : ''}</div>`;
 
 /* ==========================================================================
    SAYFA: SEFERLER
@@ -604,11 +343,6 @@ async function pageSeferler() {
       <div class="t"><h3>Seferler & Koltuk Satışı</h3><p>Sefer seçin, koltuk haritasından satış yapın.</p></div>
       ${isAdmin ? `<button class="btn btn-primary" id="newTrip">${svg('plus', 16)} Yeni sefer</button>` : ''}
     </div>
-
-    ${ipucu('seferler', 'Burada ne yapılır?',
-      'Aşağıdaki listeden bir <b>sefere tıklayın</b>, otobüsün koltuk haritası açılır. ' +
-      'Boş koltuklara tıklayıp yolcu bilgilerini girerek bilet satarsınız. ' +
-      (isAdmin ? 'Yeni sefer açmak için sağ üstteki <b>Yeni sefer</b> düğmesini kullanın.' : ''))}
 
     <div class="card card-pad" style="margin-bottom:16px">
       <div class="filters" style="margin:0">
@@ -635,20 +369,7 @@ async function pageSeferler() {
     const q = document.getElementById('fQ').value.trim(); if (q) p.set('q', q);
     const trips = await api('/trips?' + p.toString());
 
-    if (!trips.length) {
-      box.innerHTML = `<div class="card">${emptyBox(
-        'Bu tarihlerde sefer yok',
-        'Aradığınız sefer görünmüyorsa şunları deneyin:',
-        {
-          adimlar: [
-            'Yukarıdaki <b>tarih aralığını</b> genişletin (örneğin bitiş tarihini ileri alın).',
-            'Güzergah seçiliyse <b>Tümü</b> yapın.',
-            'Arama kutusunu boşaltın.'
-          ],
-          buton: isAdmin ? { yazi: 'Yeni sefer oluştur', tikla: "document.getElementById('newTrip').click()" } : null
-        })}</div>`;
-      return;
-    }
+    if (!trips.length) { box.innerHTML = `<div class="card">${emptyBox('Bu kriterlere uygun sefer bulunamadı', 'Tarih aralığını genişletmeyi deneyin.')}</div>`; return; }
 
     const byDate = {};
     trips.forEach((t) => { (byDate[t.depart_date] = byDate[t.depart_date] || []).push(t); });
@@ -674,12 +395,7 @@ async function pageSeferler() {
               <td class="num">${TL0(t.price)}</td>
               <td class="num"><b>${TL0(t.revenue)}</b></td>
               <td>${tripBadge(t.status)}</td>
-              <td class="num"><div class="row-actions">
-                <span class="btn btn-soft btn-sm">Koltuklar →</span>
-                ${isAdmin ? `<button class="btn btn-icon" title="Seferi düzenle"
-                    onclick="event.stopPropagation();tripModal(${JSON.stringify(t).replace(/"/g, '&quot;')}, refreshCurrent)">${svg('edit', 15)}</button>` : ''}
-                ${isAdmin ? silBtn('Sefer', '/trips', t.id) : ''}
-              </div></td>
+              <td class="num"><span class="btn btn-soft btn-sm">Koltuklar →</span></td>
             </tr>`;
           }).join('')}
         </tbody></table></div></div>
@@ -1363,11 +1079,6 @@ async function pageBiletler() {
   view().innerHTML = `
     <div class="page-head"><div class="t"><h3>Biletler</h3>
       <p>${S.user.role === 'admin' ? 'Tüm satışlar' : 'Kendi satışlarınız'} — PNR, ad, telefon veya T.C. ile arayın.</p></div></div>
-
-    ${ipucu('biletler', 'Bilet üzerinde ne yapabilirsiniz?',
-      'Listeden bir <b>bilete tıklayın</b>; yolcu bilgilerini düzeltebilir, tahsilat durumunu ' +
-      'değiştirebilir, bileti iptal edebilir veya yolcuya WhatsApp/SMS ile gönderebilirsiniz. ' +
-      'Yazıcı simgesi bileti çıktı almak içindir.')}
     <div class="card card-pad" style="margin-bottom:16px">
       <div class="filters" style="margin:0">
         <div class="field" style="flex:1;min-width:200px"><label>Ara</label>
@@ -1408,10 +1119,7 @@ async function pageBiletler() {
           ${t.payment_status === 'odendi' ? 'Ödendi' : t.payment_status === 'kismi' ? 'Kısmi' : 'Ödenmedi'}</span></td>
         <td>${t.status === 'satildi' ? '<span class="badge badge-green">Satıldı</span>' : t.status === 'rezerve' ? '<span class="badge badge-amber">Opsiyon</span>' : '<span class="badge badge-red">İptal</span>'}</td>
         <td style="font-size:12px;color:var(--muted)">${esc(t.sold_by_name || '-')}</td>
-        <td class="num"><div class="row-actions">
-          <button class="btn btn-icon" title="Bileti yazdır" onclick="event.stopPropagation();printTickets([${t.id}])">${svg('print', 15)}</button>
-          ${S.user.role === 'admin' ? silBtn('Bilet', '/tickets', t.id) : ''}
-        </div></td>
+        <td class="num"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();printTickets([${t.id}])">${svg('print', 14)}</button></td>
       </tr>`).join('')}
     </tbody></table></div></div>`;
   };
@@ -1517,12 +1225,6 @@ async function pageKafileler() {
   view().innerHTML = `
     <div class="page-head"><div class="t"><h3>Kafileler</h3>
       <p>Grup rezervasyonları, toplu tahsilat durumu ve yolcu listeleri.</p></div></div>
-
-    ${ipucu('kafileler', 'Kafile nedir?',
-      'Bir düğün, okul gezisi veya tur grubu gibi <b>birlikte seyahat eden yolcuları</b> tek kayıt ' +
-      'altında toplar. Böylece toplam tutarı, ne kadar tahsil edildiğini ve kalan borcu tek ekranda ' +
-      'görürsünüz. Kafile oluşturmak için sefer ekranında birden fazla koltuk seçip ' +
-      '<b>"Kafile / grup satışı"</b> kutusunu işaretleyin.')}
     ${list.length ? `<div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>
       <th>Kafile</th><th>Sefer</th><th>Koltuk</th><th class="num">Tutar</th><th class="num">Tahsil</th>
       <th class="num">Kalan</th><th>Yetkili</th><th></th></tr></thead><tbody>
@@ -1534,10 +1236,7 @@ async function pageKafileler() {
         <td class="num">${TL0(g.paid)}</td>
         <td class="num">${g.total - g.paid > 0 ? `<b style="color:var(--danger)">${TL0(g.total - g.paid)}</b>` : '<span class="badge badge-green">Tamam</span>'}</td>
         <td style="font-size:12.5px">${esc(g.contact_name || '-')}<div style="font-size:11.5px;color:var(--muted)">${esc(g.contact_phone || '')}</div></td>
-        <td class="num"><div class="row-actions">
-          <span class="btn btn-soft btn-sm">Detay →</span>
-          ${S.user.role === 'admin' ? silBtn('Kafile', '/groups', g.id, 'pageKafileler') : ''}
-        </div></td>
+        <td class="num"><span class="btn btn-soft btn-sm">Detay →</span></td>
       </tr>`).join('')}
     </tbody></table></div></div>` : `<div class="card">${emptyBox('Henüz kafile kaydı yok', 'Sefer ekranında birden fazla koltuk seçip "Kafile / grup satışı" kutusunu işaretleyin.')}</div>`}`;
 }
@@ -1674,26 +1373,14 @@ async function pageOtobusler() {
   view().innerHTML = `
     <div class="page-head"><div class="t"><h3>Otobüsler</h3><p>2+2 koltuk düzeni. Sıra sayısı ve arka 5'li sıra seçeneğine göre kapasite hesaplanır.</p></div>
       <button class="btn btn-primary" id="newBus">${svg('plus', 16)} Yeni otobüs</button></div>
-
-    ${ipucu('otobusler', 'Otobüs nasıl eklenir?',
-      'Koltuk sayısını tek tek girmenize gerek yok. Sadece <b>kaç sıra</b> olduğunu yazın ' +
-      '(her sıra 2+2 = 4 koltuk) ve <b>arka sırada 5 koltuk</b> olup olmadığını seçin. ' +
-      'Sistem toplam kapasiteyi kendisi hesaplar. Örnek: 10 sıra + arka sıra = 45 koltuk.')}
-
-    ${!list.length ? `<div class="card">${emptyBox('Henüz otobüs eklenmemiş',
-        'Sefer açabilmek için önce en az bir otobüs tanımlamanız gerekiyor.',
-        { buton: { yazi: 'İlk otobüsü ekle', tikla: "document.getElementById('newBus').click()" } })}</div>` : ''}
-    <div class="card" ${!list.length ? 'style="display:none"' : ''}><div class="table-wrap"><table class="tbl"><thead><tr>
+    <div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>
       <th>Plaka</th><th>Model / Ad</th><th class="num">Sıra</th><th>Arka 5'li</th><th class="num">Kapasite</th><th>Özellikler</th><th>Durum</th><th></th>
     </tr></thead><tbody>
       ${list.map((b) => `<tr><td><b>${esc(b.plate)}</b></td><td>${esc(b.name)}</td>
         <td class="num">${b.rows_cnt}</td><td>${b.back_row ? '<span class="badge badge-green">Var</span>' : '<span class="badge">Yok</span>'}</td>
         <td class="num"><b>${b.capacity}</b></td><td style="font-size:12.5px;color:var(--muted)">${esc(b.notes || '-')}</td>
         <td>${b.active ? '<span class="badge badge-green">Aktif</span>' : '<span class="badge badge-red">Pasif</span>'}</td>
-        <td class="num"><div class="row-actions">
-          <button class="btn btn-soft btn-sm" onclick="busModal(${b.id})">Düzenle</button>
-          ${silBtn('Otobüs', '/buses', b.id, 'pageOtobusler')}
-        </div></td></tr>`).join('')}
+        <td class="num"><button class="btn btn-soft btn-sm" onclick="busModal(${b.id})">Düzenle</button></td></tr>`).join('')}
     </tbody></table></div></div>`;
   document.getElementById('newBus').onclick = () => busModal(null);
 }
@@ -1748,23 +1435,12 @@ async function pageGuzergahlar() {
   view().innerHTML = `
     <div class="page-head"><div class="t"><h3>Güzergahlar</h3><p>Kalkış–varış çiftleri. Her yön ayrı kayıttır.</p></div>
       <button class="btn btn-primary" id="newRoute">${svg('plus', 16)} Yeni güzergah</button></div>
-
-    ${ipucu('guzergahlar', 'Gidiş ve dönüş ayrı ayrı eklenir',
-      'İstanbul → Ankara ile Ankara → İstanbul <b>iki ayrı güzergahtır</b>. ' +
-      'Her iki yönde de sefer yapıyorsanız ikisini de eklemelisiniz.')}
-
-    ${!list.length ? `<div class="card">${emptyBox('Henüz güzergah eklenmemiş',
-        'Sefer açabilmek için önce hangi şehirler arasında çalıştığınızı tanımlayın.',
-        { buton: { yazi: 'İlk güzergahı ekle', tikla: "document.getElementById('newRoute').click()" } })}</div>` : ''}
-    <div class="card" ${!list.length ? 'style="display:none"' : ''}><div class="table-wrap"><table class="tbl"><thead><tr>
+    <div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>
       <th>Kalkış</th><th>Varış</th><th class="num">Süre</th><th>Durum</th><th></th></tr></thead><tbody>
       ${list.map((r) => `<tr><td><b>${esc(r.origin)}</b></td><td><b>${esc(r.destination)}</b></td>
         <td class="num">${Math.floor(r.duration_min / 60)} sa ${r.duration_min % 60} dk</td>
         <td>${r.active ? '<span class="badge badge-green">Aktif</span>' : '<span class="badge badge-red">Pasif</span>'}</td>
-        <td class="num"><div class="row-actions">
-          <button class="btn btn-soft btn-sm" onclick="routeModal(${r.id})">Düzenle</button>
-          ${silBtn('Güzergah', '/routes', r.id, 'pageGuzergahlar')}
-        </div></td></tr>`).join('')}
+        <td class="num"><button class="btn btn-soft btn-sm" onclick="routeModal(${r.id})">Düzenle</button></td></tr>`).join('')}
     </tbody></table></div></div>`;
   document.getElementById('newRoute').onclick = () => routeModal(null);
 }
@@ -1799,25 +1475,13 @@ async function pageKullanicilar() {
     <div class="page-head"><div class="t"><h3>Kullanıcılar</h3>
       <p>Yönetici her şeyi görür; acente yalnızca kendi sattığı biletleri görür ve düzenler.</p></div>
       <button class="btn btn-primary" id="newUser">${svg('plus', 16)} Yeni kullanıcı</button></div>
-
-    ${ipucu('kullanicilar', 'İki tür kullanıcı var',
-      '<b>Yönetici:</b> her şeyi görür, sefer açar, siler, ayarları değiştirir.<br>' +
-      '<b>Acente:</b> sadece bilet satar ve <b>kendi sattığı</b> biletleri görür. ' +
-      'Başkasının satışını göremez, sefer açamaz, silemez.<br>' +
-      'Bir personel işten ayrılırsa hesabı silmek yerine <b>Pasif</b> yapmanız yeterli — ' +
-      'geçmiş satışları kayıtta kalır.')}
     <div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>
       <th>Kullanıcı</th><th>Ad Soyad</th><th>Acente</th><th>Telefon</th><th>Rol</th><th>Durum</th><th></th></tr></thead><tbody>
       ${list.map((u) => `<tr><td><code style="font-weight:700">${esc(u.username)}</code></td><td><b>${esc(u.full_name)}</b></td>
         <td>${esc(u.agency_name || '-')}</td><td>${esc(u.phone || '-')}</td>
         <td>${u.role === 'admin' ? '<span class="badge badge-violet">Yönetici</span>' : '<span class="badge badge-blue">Acente</span>'}</td>
         <td>${u.active ? '<span class="badge badge-green">Aktif</span>' : '<span class="badge badge-red">Pasif</span>'}</td>
-        <td class="num"><div class="row-actions">
-          <button class="btn btn-soft btn-sm" onclick="userModal(${u.id})">Düzenle</button>
-          ${u.id === S.user.id
-            ? `<button class="btn btn-icon" disabled title="Kendi hesabınızı silemezsiniz">${svg('trash', 15)}</button>`
-            : silBtn('Kullanıcı', '/users', u.id, 'pageKullanicilar')}
-        </div></td></tr>`).join('')}
+        <td class="num"><button class="btn btn-soft btn-sm" onclick="userModal(${u.id})">Düzenle</button></td></tr>`).join('')}
     </tbody></table></div></div>`;
   document.getElementById('newUser').onclick = () => userModal(null);
 }
@@ -1869,51 +1533,13 @@ async function pageAyarlar() {
     <div class="page-head"><div class="t"><h3>Ayarlar</h3><p>Firma bilgileri bilet ve yolcu listesi çıktılarında görünür.</p></div></div>
     <div class="grid-2" style="gap:16px;align-items:start">
       <div class="card card-pad">
-        <h4 style="margin-bottom:6px">Firma kimliği</h4>
-        <p style="color:var(--muted);font-size:13px;margin:0 0 14px">
-          Buradaki bilgiler giriş ekranında, sol menüde, biletlerde ve yolcu listelerinde görünür.</p>
-
-        <label style="display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px">Logo</label>
-        <div class="logo-picker">
-          <div class="logo-preview" id="logoPrev">
-            ${s.company.logo ? `<img src="${esc(s.company.logo)}" alt="Logo">`
-              : `<span>Logo<br>yok</span>`}
-          </div>
-          <div style="flex:1">
-            <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp" hidden>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn btn-soft btn-sm" id="logoPick">Resim seç</button>
-              <button class="btn btn-ghost btn-sm" id="logoClear" ${s.company.logo ? '' : 'style="display:none"'}>Kaldır</button>
-            </div>
-            <div style="font-size:12px;color:var(--muted);margin-top:7px">
-              PNG veya JPG. Kare veya yatay olması en iyi sonucu verir; sistem küçültmeyi kendisi yapar.</div>
-          </div>
-        </div>
-
-        <div class="field"><label>Firma adı *</label><input class="input" id="coName" value="${esc(s.company.name || '')}" placeholder="ÖZ TURAKİNE TURİZM"></div>
-        <div class="field"><label>Slogan / alt başlık</label><input class="input" id="coSlogan" value="${esc(s.company.slogan || '')}" placeholder="Güvenli ve konforlu yolculuk"></div>
-        <div class="grid-2">
-          <div class="field"><label>Telefon</label><input class="input" id="coPhone" value="${esc(s.company.phone || '')}" placeholder="0850 000 00 00"></div>
-          <div class="field"><label>İnternet adresi</label><input class="input" id="coWeb" value="${esc(s.company.website || '')}" placeholder="turakine.com.tr"></div>
-        </div>
-        <div class="field"><label>Adres</label><input class="input" id="coAddr" value="${esc(s.company.address || '')}" placeholder="Otogar / İstanbul"></div>
-        <div class="field"><label>Vergi dairesi / no (bilet altında görünür)</label>
-          <input class="input" id="coTax" value="${esc(s.company.tax_info || '')}" placeholder="Bakırköy V.D. 1234567890"></div>
-        <div class="field"><label>Bilet alt yazısı</label>
-          <textarea class="input" id="coNote" rows="2" placeholder="Yolcularımızın kalkış saatinden 15 dakika önce peronda bulunmaları rica olunur.">${esc(s.company.ticket_note || '')}</textarea></div>
+        <h4 style="margin-bottom:14px">Firma bilgileri</h4>
+        <div class="field"><label>Firma adı *</label><input class="input" id="coName" value="${esc(s.company.name || '')}"></div>
+        <div class="field"><label>Telefon</label><input class="input" id="coPhone" value="${esc(s.company.phone || '')}"></div>
+        <div class="field"><label>Adres</label><input class="input" id="coAddr" value="${esc(s.company.address || '')}"></div>
         <button class="btn btn-primary" id="coSave">Kaydet</button>
       </div>
       <div style="display:flex;flex-direction:column;gap:16px">
-        <div class="card card-pad">
-          <h4 style="margin-bottom:6px">Yardım</h4>
-          <p style="color:var(--muted);font-size:13px;margin:0 0 12px">
-            Ekranlardaki açıklama kutularını kapattıysanız buradan hepsini geri getirebilirsiniz.</p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-soft btn-sm" onclick="tumIpuclariniAc()">${svg('help', 15)} Açıklamaları geri aç</button>
-            <button class="btn btn-soft btn-sm" onclick="karsilamaGoster(true)">${svg('star', 15)} Karşılama turunu göster</button>
-          </div>
-        </div>
-
         <div class="card card-pad">
           <h4 style="margin-bottom:14px">Şifremi değiştir</h4>
           ${S.user.weak_password ? `<div class="badge badge-red" style="margin-bottom:12px;white-space:normal;text-align:left">
@@ -1943,44 +1569,14 @@ async function pageAyarlar() {
     ${S.user.role === 'admin' ? `<div class="card card-pad" style="margin-top:16px" id="smsCard">
       <div class="loading-box"><span class="spinner"></span></div>
     </div>` : ''}`;
-  /* ---- Logo seçimi: tarayıcıda küçültülür, sunucuya küçük hâli gider ---- */
-  let yeniLogo = s.company.logo || '';
-  document.getElementById('logoPick').onclick = () => document.getElementById('logoFile').click();
-  document.getElementById('logoFile').onchange = async (ev) => {
-    const f = ev.target.files && ev.target.files[0];
-    if (!f) return;
-    if (!/^image\//.test(f.type)) { toast('Lütfen bir resim dosyası seçin.', 'err'); return; }
-    try {
-      yeniLogo = await kucultResim(f, 320);
-      document.getElementById('logoPrev').innerHTML = `<img src="${yeniLogo}" alt="Logo">`;
-      document.getElementById('logoClear').style.display = '';
-      toast('Logo seçildi. Kaydet düğmesine basmayı unutmayın.', 'warn');
-    } catch { toast('Resim okunamadı. Başka bir dosya deneyin.', 'err'); }
-  };
-  document.getElementById('logoClear').onclick = () => {
-    yeniLogo = '';
-    document.getElementById('logoPrev').innerHTML = '<span>Logo<br>yok</span>';
-    document.getElementById('logoClear').style.display = 'none';
-  };
-
   document.getElementById('coSave').onclick = async (e) => {
     e.target.disabled = true;
-    const company = {
-      name: document.getElementById('coName').value,
-      slogan: document.getElementById('coSlogan').value,
-      phone: document.getElementById('coPhone').value,
-      website: document.getElementById('coWeb').value,
-      address: document.getElementById('coAddr').value,
-      tax_info: document.getElementById('coTax').value,
-      ticket_note: document.getElementById('coNote').value,
-      logo: yeniLogo
-    };
-    try {
-      const r = await api('/settings', { method: 'PUT', body: JSON.stringify({ company }) });
-      S.company = r.company || company;
-      uygulaMarka();
-      toast('Firma bilgileri kaydedildi.');
-    } catch (ex) { toast(ex.message, 'err', 6000); }
+    try { await api('/settings', { method: 'PUT', body: JSON.stringify({ company: {
+      name: document.getElementById('coName').value, phone: document.getElementById('coPhone').value,
+      address: document.getElementById('coAddr').value } }) });
+      toast('Firma bilgileri güncellendi.'); S.company.name = document.getElementById('coName').value;
+      document.getElementById('sideBrand').textContent = S.company.name; }
+    catch (ex) { toast(ex.message, 'err'); }
     e.target.disabled = false;
   };
   document.getElementById('pwSave').onclick = async (e) => {
@@ -2176,7 +1772,7 @@ async function pageBildirimler() {
       <p>Yolculara gönderilen bilet mesajları ve sonuçları.</p></div>
       <button class="btn btn-soft btn-sm" onclick="location.hash='#/ayarlar'">Bildirim ayarları</button></div>
     ${list.length ? `<div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>
-      <th>Zaman</th><th>Yolcu</th><th>Numara</th><th>Kanal</th><th>Durum</th><th>Mesaj / hata</th><th>Gönderen</th><th></th>
+      <th>Zaman</th><th>Yolcu</th><th>Numara</th><th>Kanal</th><th>Durum</th><th>Mesaj / hata</th><th>Gönderen</th>
     </tr></thead><tbody>
       ${list.map((m) => `<tr>
         <td style="white-space:nowrap">${esc(m.created_at)}</td>
@@ -2187,7 +1783,6 @@ async function pageBildirimler() {
              : m.status === 'hata' ? '<span class="badge badge-red">Hata</span>' : '<span class="badge badge-amber">Bekliyor</span>'}</td>
         <td style="max-width:340px;font-size:12px;color:var(--muted)">${esc(m.error || m.body).slice(0, 120)}</td>
         <td style="font-size:12px">${esc(m.by_name || '-')}</td>
-        <td class="num">${silBtn('Bildirim', '/messages', m.id, 'pageBildirimler')}</td>
       </tr>`).join('')}
     </tbody></table></div></div>` : `<div class="card">${emptyBox('Henüz mesaj gönderilmedi',
       'Bilet ekranındaki "Bilet gönder" düğmesinden WhatsApp veya SMS ile gönderebilirsiniz.')}</div>`}`;
@@ -2224,11 +1819,7 @@ function printWindow(title, inner) {
       th{background:#f1f5f9;text-align:left;padding:7px 9px;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #cbd5e1}
       td{padding:7px 9px;border-bottom:1px solid #e2e8f0}
       .r{text-align:right} .muted{color:#64748b}
-      .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2.5px solid #0b1f3a;padding-bottom:10px;margin-bottom:14px}
-      .head-left{display:flex;align-items:center;gap:13px}
-      .head-logo{max-width:74px;max-height:56px;object-fit:contain}
-      .head-slogan{font-size:11px;color:#64748b;margin:1px 0 3px;letter-spacing:.02em}
-      .head-right{text-align:right;font-size:11.5px;line-height:1.5}
+      .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #0b1f3a;padding-bottom:10px;margin-bottom:14px}
       .tick{border:1.5px dashed #94a3b8;border-radius:10px;padding:12px 14px;margin-bottom:10px;page-break-inside:avoid;display:flex;gap:14px}
       .tick .seat{width:62px;flex-shrink:0;text-align:center;border-right:1.5px dashed #cbd5e1;padding-right:12px}
       .tick .seat b{display:block;font-size:26px;line-height:1.1}
@@ -2249,7 +1840,11 @@ async function printManifest(tripId) {
     const t = d.trip, c = d.company;
     const bay = d.passengers.filter((p) => p.gender === 'E').length;
     const inner = `
-      ${ciktiBasligi(c, 'YOLCU LİSTESİ')}
+      <div class="head">
+        <div><h1>${esc(c.name)}</h1><h2>YOLCU LİSTESİ</h2></div>
+        <div style="text-align:right;font-size:11.5px" class="muted">
+          ${esc(c.phone || '')}<br>${esc(c.address || '')}<br>Yazdırma: ${new Date().toLocaleString('tr-TR')}</div>
+      </div>
       <table style="margin-bottom:6px"><tr>
         <td><b style="font-size:15px">${esc(t.origin)} → ${esc(t.destination)}</b></td>
         <td>${trDate(t.depart_date)} · <b>${t.depart_time}</b></td>
@@ -2276,7 +1871,8 @@ async function printTickets(ids, silentIfEmpty) {
     const [tickets, s] = await Promise.all([Promise.all(ids.map((id) => api('/tickets/' + id))), api('/settings')]);
     const c = s.company;
     const inner = `
-      ${ciktiBasligi(c, 'YOLCU BİLETİ')}
+      <div class="head"><div><h1>${esc(c.name)}</h1><h2>YOLCU BİLETİ</h2></div>
+        <div style="text-align:right;font-size:11.5px" class="muted">${esc(c.phone || '')}<br>${esc(c.address || '')}</div></div>
       ${tickets.map((t) => `<div class="tick">
         <div class="seat"><b>${t.seat_no}</b><span>Koltuk</span></div>
         <div class="info">
@@ -2293,7 +1889,7 @@ async function printTickets(ids, silentIfEmpty) {
           </div>
           <div class="kv" style="font-size:10.5px"><span>Düzenleyen: ${esc(t.sold_by_name || '')}${t.agency_name ? ' — ' + esc(t.agency_name) : ''} · ${esc(t.created_at)}</span></div>
         </div></div>`).join('')}
-      <div class="foot">${esc(c.ticket_note || '')}${c.tax_info ? `<div style="margin-top:3px">${esc(c.tax_info)}</div>` : ''}</div>`;
+      <div class="foot">Yolcularımızın kalkış saatinden 15 dakika önce peronda bulunmaları rica olunur. İyi yolculuklar dileriz.</div>`;
     printWindow('Bilet', inner);
   } catch (ex) { if (!silentIfEmpty) toast(ex.message, 'err'); }
 }
@@ -2304,77 +1900,7 @@ async function printTickets(ids, silentIfEmpty) {
 const TITLES = { panel: 'Panel', seferler: 'Seferler & Satış', sefer: 'Koltuk Haritası', biletler: 'Biletler',
   kafileler: 'Kafileler', kafile: 'Kafile Detayı', raporlar: 'Raporlar', otobusler: 'Otobüsler',
   guzergahlar: 'Güzergahlar', kullanicilar: 'Kullanıcılar', ayarlar: 'Ayarlar', kayitlar: 'İşlem Kayıtları',
-  binis: 'Biniş Kontrolü', bildirimler: 'Gönderim Kayıtları', cop: 'Çöp Kutusu' };
-
-/* ==========================================================================
-   SAYFA: ÇÖP KUTUSU
-   ========================================================================== */
-async function pageCopKutusu() {
-  loading();
-  const d = await api('/trash');
-  const list = d.items || [];
-  S.copSayisi = list.length;
-
-  view().innerHTML = `
-    <div class="page-head">
-      <div class="t"><h3>Çöp Kutusu</h3>
-        <p>Silinen kayıtlar burada ${d.saklama_gun} gün bekler. Yanlışlıkla sildiyseniz tek tıkla geri alabilirsiniz.</p></div>
-      ${list.length ? `<button class="btn btn-danger-soft" id="emptyAll">${svg('trash', 16)} Çöp kutusunu boşalt</button>` : ''}
-    </div>
-
-    <div class="info-box" style="margin-bottom:16px">${svg('info', 18)}
-      <div><b>Nasıl çalışır?</b> Sistemde bir şey sildiğinizde hemen yok olmaz, buraya gelir.
-      ${d.saklama_gun} gün içinde <b>Geri al</b> derseniz her şey (bağlı biletler dahil) aynen yerine döner.
-      Süre dolunca kendiliğinden temizlenir.</div>
-    </div>
-
-    ${list.length ? `<div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>
-      <th>Tür</th><th>Ne silindi</th><th>Birlikte gidenler</th><th>Silen</th><th>Ne zaman</th><th>Kalan süre</th><th></th>
-    </tr></thead><tbody>
-      ${list.map((x) => `<tr>
-        <td><span class="badge badge-violet">${esc(x.tur)}</span></td>
-        <td><b>${esc(x.label)}</b></td>
-        <td style="font-size:12.5px;color:var(--muted)">${esc(x.summary || '—')}</td>
-        <td style="font-size:12.5px">${esc(x.deleted_by_name || '—')}</td>
-        <td style="white-space:nowrap;font-size:12.5px">${esc(x.deleted_at)}</td>
-        <td><span class="badge ${x.kalan_gun <= 3 ? 'badge-red' : x.kalan_gun <= 7 ? 'badge-amber' : 'badge-green'}">${x.kalan_gun} gün</span></td>
-        <td class="num"><div class="row-actions">
-          <button class="btn btn-primary btn-sm" onclick="copGeriAl(${x.id})">${svg('undo', 14)} Geri al</button>
-          <button class="btn btn-icon btn-danger-soft" title="Kalıcı olarak sil" onclick="copKaliciSil(${x.id})">${svg('trash', 15)}</button>
-        </div></td>
-      </tr>`).join('')}
-    </tbody></table></div></div>`
-    : `<div class="card">${emptyBox('Çöp kutusu boş', 'Sildiğiniz kayıtlar burada görünür ve geri alınabilir.')}</div>`}`;
-
-  const btn = document.getElementById('emptyAll');
-  if (btn) btn.onclick = async () => {
-    const onay = await confirmBox(
-      'Çöp kutusu tamamen boşaltılsın mı?',
-      `${list.length} kayıt kalıcı olarak silinecek. Bu işlemin geri dönüşü YOKTUR.`,
-      'Evet, kalıcı olarak sil');
-    if (!onay) return;
-    try { const r = await api('/trash/empty', { method: 'POST' }); toast(`${r.count} kayıt kalıcı olarak silindi.`); pageCopKutusu(); copSayisiniTazele(); }
-    catch (ex) { toast(ex.message, 'err'); }
-  };
-}
-
-async function copGeriAl(id) {
-  try {
-    const r = await api('/trash/' + id + '/restore', { method: 'POST' });
-    toast(`${r.tur} geri alındı: ${r.label}`);
-    pageCopKutusu(); copSayisiniTazele();
-  } catch (ex) { toast(ex.message, 'err', 8000); }
-}
-
-async function copKaliciSil(id) {
-  const onay = await confirmBox(
-    'Kalıcı olarak silinsin mi?',
-    'Bu kayıt tamamen yok edilecek ve bir daha geri alınamayacak.',
-    'Evet, kalıcı olarak sil');
-  if (!onay) return;
-  try { await api('/trash/' + id, { method: 'DELETE' }); toast('Kalıcı olarak silindi.'); pageCopKutusu(); copSayisiniTazele(); }
-  catch (ex) { toast(ex.message, 'err'); }
-}
+  binis: 'Biniş Kontrolü', bildirimler: 'Gönderim Kayıtları' };
 
 async function router() {
   const parts = (location.hash || '#/panel').replace(/^#\//, '').split('/');
@@ -2382,7 +1908,7 @@ async function router() {
   const arg = parts[1];
   document.getElementById('pageTitle').textContent = TITLES[page] || 'Panel';
   markNav(page);
-  const adminPages = ['otobusler', 'guzergahlar', 'kullanicilar', 'kayitlar', 'bildirimler', 'cop'];
+  const adminPages = ['otobusler', 'guzergahlar', 'kullanicilar', 'kayitlar', 'bildirimler'];
   if (adminPages.includes(page) && S.user.role !== 'admin') { toast('Bu sayfa için yetkiniz yok.', 'err'); location.hash = '#/panel'; return; }
   try {
     switch (page) {
@@ -2400,7 +1926,6 @@ async function router() {
       case 'ayarlar': return await pageAyarlar();
       case 'bildirimler': return await pageBildirimler();
       case 'kayitlar': return await pageKayitlar();
-      case 'cop': return await pageCopKutusu();
       default: location.hash = '#/panel';
     }
   } catch (ex) {
@@ -2423,7 +1948,7 @@ async function router() {
   const theme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', theme);
 
-  uygulaMarka();
+  document.getElementById('sideBrand').textContent = S.company.name || 'REZERVASYON';
   document.getElementById('whoName').textContent = S.user.full_name;
   document.getElementById('whoRole').textContent = S.user.role === 'admin' ? 'Yönetici' : (S.user.agency_name || 'Acente');
   document.getElementById('avatar').textContent = S.user.full_name.split(' ').map((x) => x[0]).slice(0, 2).join('').toLocaleUpperCase('tr-TR');
@@ -2466,7 +1991,6 @@ async function router() {
   window.addEventListener('offline', () => { liveStatus('off', 'çevrimdışı'); toast('İnternet bağlantısı kesildi. Satış yapmayın.', 'err', 8000); });
 
   router();
-  setTimeout(() => karsilamaGoster(false), 700);
 })();
 
 /* ==========================================================================
