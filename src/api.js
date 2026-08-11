@@ -1,7 +1,7 @@
 'use strict';
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { db, capacityOf, seatLayout, seatPartner, seatKind, makeBackup, BACKUP_DIR } = require('./db');
+const { db, capacityOf, seatLayout, seatIndex, seatPartner, seatKind, makeBackup, BACKUP_DIR } = require('./db');
 const {
   sign, auth, adminOnly, log,
   loginLimiter, noteLoginFail, noteLoginOk, isSecure
@@ -30,7 +30,7 @@ function tripDetail(id) {
   return db
     .prepare(
       `SELECT t.*, r.origin, r.destination, r.duration_min,
-              b.plate, b.name AS bus_name, b.rows_cnt, b.back_row, b.capacity
+              b.plate, b.name AS bus_name, b.rows_cnt, b.back_row, b.mid_door, b.mid_door_row, b.capacity
        FROM trips t
        JOIN routes r ON r.id = t.route_id
        JOIN buses  b ON b.id = t.bus_id
@@ -92,8 +92,102 @@ router.post('/me/password', auth, (req, res) => {
   ok(res, { ok: true });
 });
 
-// Giriş ekranında firma adını göstermek için (oturum gerektirmez)
-router.get('/public/settings', (req, res) => ok(res, { company: getCompany() }));
+/* ==================================================================
+   HERKESE AÇIK UÇLAR — oturum gerektirmez
+   ------------------------------------------------------------------
+   Ziyaretçiler sefer ve koltuk doluluğunu görebilir; satış yapamaz.
+   Yolcu adı, telefon, T.C., PNR gibi kişisel bilgiler ASLA gönderilmez.
+   Sadece "bu koltuk dolu ve yolcusu bay/bayan" bilgisi paylaşılır —
+   yandaki koltuğu alabilir mi bilsin diye.
+================================================================== */
+router.get('/public/settings', (req, res) => {
+  const c = getCompany();
+  ok(res, {
+    company: {
+      name: c.name, slogan: c.slogan, phone: c.phone,
+      address: c.address, website: c.website, logo: c.logo
+    }
+  });
+});
+
+router.get('/public/routes', (req, res) => {
+  ok(res, db.prepare(
+    `SELECT DISTINCT r.id, r.origin, r.destination
+     FROM routes r JOIN trips t ON t.route_id = r.id
+     WHERE r.active = 1 AND t.status = 'acik' AND t.depart_date >= date('now','localtime')
+     ORDER BY r.origin, r.destination`
+  ).all());
+});
+
+router.get('/public/trips', (req, res) => {
+  const { date, from, to, route_id, q } = req.query;
+  const where = ["t.status = 'acik'", "t.depart_date >= date('now','localtime')"];
+  const params = [];
+  if (date) { where.push('t.depart_date = ?'); params.push(date); }
+  if (from) { where.push('t.depart_date >= ?'); params.push(from); }
+  if (to) { where.push('t.depart_date <= ?'); params.push(to); }
+  if (route_id) { where.push('t.route_id = ?'); params.push(Number(route_id)); }
+  if (q) { where.push('(r.origin LIKE ? OR r.destination LIKE ?)'); params.push(`%${q}%`, `%${q}%`); }
+
+  const rows = db.prepare(`
+    SELECT t.id, t.depart_date, t.depart_time, t.price, t.notes,
+           r.origin, r.destination, r.duration_min,
+           b.name AS bus_name, b.capacity,
+           (SELECT COUNT(*) FROM tickets tk WHERE tk.trip_id = t.id AND tk.status <> 'iptal') AS sold
+    FROM trips t
+    JOIN routes r ON r.id = t.route_id
+    JOIN buses  b ON b.id = t.bus_id
+    WHERE ${where.join(' AND ')}
+    ORDER BY t.depart_date, t.depart_time
+    LIMIT 300`).all(...params);
+
+  // Plaka ve iç bilgiler dışarı verilmez; sadece boş koltuk sayısı
+  ok(res, rows.map((t) => ({
+    id: t.id, depart_date: t.depart_date, depart_time: t.depart_time,
+    origin: t.origin, destination: t.destination, duration_min: t.duration_min,
+    price: t.price, notes: t.notes, bus_name: t.bus_name,
+    capacity: t.capacity, empty: t.capacity - t.sold
+  })));
+});
+
+router.get('/public/trips/:id/seatmap', (req, res) => {
+  const trip = tripDetail(Number(req.params.id));
+  if (!trip || trip.status !== 'acik') return bad(res, 'Sefer bulunamadı.', 404);
+  if (trip.depart_date < new Date().toLocaleDateString('en-CA')) return bad(res, 'Sefer bulunamadı.', 404);
+
+  const dolu = new Map(db.prepare(
+    "SELECT seat_no, gender FROM tickets WHERE trip_id = ? AND status <> 'iptal'"
+  ).all(trip.id).map((t) => [t.seat_no, t.gender]));
+
+  const layout = seatLayout(trip.rows_cnt, trip.back_row, trip.mid_door, trip.mid_door_row);
+  const index = seatIndex(trip.rows_cnt, trip.back_row, trip.mid_door, trip.mid_door_row);
+
+  const seats = [];
+  for (let n = 1; n <= trip.capacity; n++) {
+    const g = dolu.get(n) || null;
+    const bilgi = index.get(n) || {};
+    const es = bilgi.partner ? dolu.get(bilgi.partner) || null : null;
+    seats.push({
+      seat_no: n,
+      kind: bilgi.kind || 'koridor',
+      occupied: !!g,
+      gender: g,                                  // sadece E / K — isim yok
+      requires_gender: !g && es ? es : null        // boşsa ve yanı doluysa hangi cinsiyet gerekir
+    });
+  }
+
+  ok(res, {
+    trip: {
+      id: trip.id, origin: trip.origin, destination: trip.destination,
+      depart_date: trip.depart_date, depart_time: trip.depart_time,
+      price: trip.price, notes: trip.notes, bus_name: trip.bus_name,
+      capacity: trip.capacity, rows_cnt: trip.rows_cnt, back_row: trip.back_row,
+      mid_door: trip.mid_door, mid_door_row: trip.mid_door_row
+    },
+    layout, seats,
+    stats: { dolu: dolu.size, bos: trip.capacity - dolu.size }
+  });
+});
 
 router.use(auth); // buradan sonrası oturum ister
 
@@ -154,15 +248,19 @@ router.get('/buses', (req, res) => {
 });
 
 router.post('/buses', adminOnly, (req, res) => {
-  const { plate, name, rows_cnt, back_row, notes } = req.body || {};
+  const { plate, name, rows_cnt, back_row, mid_door, mid_door_row, notes } = req.body || {};
   if (!plate || !name) return bad(res, 'Plaka ve otobüs adı zorunlu.');
   const rows = Number(rows_cnt) || 11;
   if (rows < 5 || rows > 20) return bad(res, 'Sıra sayısı 5 ile 20 arasında olmalı.');
   const br = back_row ? 1 : 0;
+  const md = mid_door ? 1 : 0;
+  const mdr = Number(mid_door_row) || 6;
+  if (md && (mdr < 2 || mdr > rows))
+    return bad(res, `Orta kapı sırası 2 ile ${rows} arasında olmalı.`);
   if (db.prepare('SELECT 1 FROM buses WHERE plate = ?').get(plate)) return bad(res, 'Bu plaka zaten kayıtlı.');
   const info = db.prepare(
-    'INSERT INTO buses (plate,name,rows_cnt,back_row,capacity,notes) VALUES (?,?,?,?,?,?)'
-  ).run(plate.trim().toUpperCase(), name.trim(), rows, br, capacityOf(rows, br), notes || null);
+    'INSERT INTO buses (plate,name,rows_cnt,back_row,mid_door,mid_door_row,capacity,notes) VALUES (?,?,?,?,?,?,?,?)'
+  ).run(plate.trim().toUpperCase(), name.trim(), rows, br, md, mdr, capacityOf(rows, br, md), notes || null);
   log(req, 'otobus_ekle', { plate });
   ok(res, { id: info.lastInsertRowid });
 });
@@ -171,11 +269,31 @@ router.put('/buses/:id', adminOnly, (req, res) => {
   const id = Number(req.params.id);
   const b = db.prepare('SELECT * FROM buses WHERE id = ?').get(id);
   if (!b) return bad(res, 'Otobüs bulunamadı.', 404);
-  const { plate, name, rows_cnt, back_row, notes, active } = req.body || {};
+  const { plate, name, rows_cnt, back_row, mid_door, mid_door_row, notes, active } = req.body || {};
   const rows = rows_cnt === undefined ? b.rows_cnt : Number(rows_cnt);
   const br = back_row === undefined ? b.back_row : (back_row ? 1 : 0);
+  const md = mid_door === undefined ? b.mid_door : (mid_door ? 1 : 0);
+  const mdr = mid_door_row === undefined ? b.mid_door_row : (Number(mid_door_row) || 6);
   if (rows < 5 || rows > 20) return bad(res, 'Sıra sayısı 5 ile 20 arasında olmalı.');
-  const newCap = capacityOf(rows, br);
+  if (md && (mdr < 2 || mdr > rows)) return bad(res, `Orta kapı sırası 2 ile ${rows} arasında olmalı.`);
+
+  /* Orta kapı koltuk numaralarını kaydırır. Satılmış bilet varken değiştirmek
+     yolcuların koltuk numaralarını bozar — bu yüzden engelliyoruz. */
+  const kapiDegisti = md !== b.mid_door || (md && mdr !== b.mid_door_row);
+  if (kapiDegisti) {
+    const bilet = db.prepare(
+      `SELECT COUNT(*) c FROM tickets tk JOIN trips t ON t.id = tk.trip_id
+       WHERE t.bus_id = ? AND tk.status <> 'iptal'`
+    ).get(id).c;
+    if (bilet > 0) {
+      return bad(res,
+        `Bu otobüsün seferlerinde ${bilet} satılmış bilet var. Orta kapı ayarını değiştirmek ` +
+        'koltuk numaralarını kaydırır ve yolcuların koltukları karışır. ' +
+        'Ya önce bu biletleri iptal edin, ya da bu otobüsü yeni bir kayıt olarak ekleyin.');
+    }
+  }
+
+  const newCap = capacityOf(rows, br, md);
   if (newCap < b.capacity) {
     const over = db.prepare(
       `SELECT COUNT(*) c FROM tickets tk JOIN trips t ON t.id = tk.trip_id
@@ -183,8 +301,8 @@ router.put('/buses/:id', adminOnly, (req, res) => {
     ).get(id, newCap).c;
     if (over > 0) return bad(res, `Bu otobüsün seferlerinde ${newCap} numarasından büyük koltuklarda satılmış bilet var. Önce onları iptal edin.`);
   }
-  db.prepare('UPDATE buses SET plate=?,name=?,rows_cnt=?,back_row=?,capacity=?,notes=?,active=? WHERE id=?')
-    .run((plate ?? b.plate).toUpperCase(), name ?? b.name, rows, br, newCap, notes ?? b.notes,
+  db.prepare('UPDATE buses SET plate=?,name=?,rows_cnt=?,back_row=?,mid_door=?,mid_door_row=?,capacity=?,notes=?,active=? WHERE id=?')
+    .run((plate ?? b.plate).toUpperCase(), name ?? b.name, rows, br, md, mdr, newCap, notes ?? b.notes,
          active === undefined ? b.active : (active ? 1 : 0), id);
   log(req, 'otobus_guncelle', { id });
   ok(res, { ok: true });
@@ -302,16 +420,16 @@ router.get('/trips/:id/seatmap', (req, res) => {
   ).all(trip.id);
 
   const bySeat = new Map(tickets.map((t) => [t.seat_no, t]));
-  const layout = seatLayout(trip.rows_cnt, trip.back_row);
+  const layout = seatLayout(trip.rows_cnt, trip.back_row, trip.mid_door, trip.mid_door_row);
 
   const seats = [];
   for (let n = 1; n <= trip.capacity; n++) {
     const t = bySeat.get(n);
-    const partner = seatPartner(n, trip.rows_cnt, trip.back_row);
+    const partner = seatPartner(n, trip.rows_cnt, trip.back_row, trip.mid_door, trip.mid_door_row);
     const pt = partner ? bySeat.get(partner) : null;
     seats.push({
       seat_no: n,
-      kind: seatKind(n, trip.rows_cnt, trip.back_row),
+      kind: seatKind(n, trip.rows_cnt, trip.back_row, trip.mid_door, trip.mid_door_row),
       partner,
       // Boş koltuk için cinsiyet kısıtı: yandaki doluysa aynı cinsiyet gerekir
       requires_gender: !t && pt ? pt.gender : null,
@@ -340,7 +458,8 @@ router.get('/trips/:id/seatmap', (req, res) => {
       id: trip.id, origin: trip.origin, destination: trip.destination,
       depart_date: trip.depart_date, depart_time: trip.depart_time, price: trip.price,
       status: trip.status, notes: trip.notes, plate: trip.plate, bus_name: trip.bus_name,
-      rows_cnt: trip.rows_cnt, back_row: trip.back_row, capacity: trip.capacity
+      rows_cnt: trip.rows_cnt, back_row: trip.back_row,
+      mid_door: trip.mid_door, mid_door_row: trip.mid_door_row, capacity: trip.capacity
     },
     layout, seats, groups,
     stats: {
@@ -411,7 +530,7 @@ router.post('/trips/:id/sell', (req, res) => {
         const pending = new Map(passengers.map((p) => [Number(p.seat_no), p]));
         for (const p of passengers) {
           const s = Number(p.seat_no);
-          const partner = seatPartner(s, trip.rows_cnt, trip.back_row);
+          const partner = seatPartner(s, trip.rows_cnt, trip.back_row, trip.mid_door, trip.mid_door_row);
           if (!partner) continue;
 
           const np = pending.get(partner);
@@ -534,7 +653,7 @@ router.put('/tickets/:id', (req, res) => {
   if (gender && gender !== t.gender) {
     // cinsiyet değişirse yan koltuk kuralını tekrar kontrol et
     const trip = tripDetail(t.trip_id);
-    const partner = seatPartner(t.seat_no, trip.rows_cnt, trip.back_row);
+    const partner = seatPartner(t.seat_no, trip.rows_cnt, trip.back_row, trip.mid_door, trip.mid_door_row);
     if (partner) {
       const op = db.prepare("SELECT * FROM tickets WHERE trip_id=? AND seat_no=? AND status<>'iptal'").get(t.trip_id, partner);
       if (op && op.gender !== gender && !(t.group_id && op.group_id === t.group_id))
@@ -588,7 +707,7 @@ router.post('/tickets/:id/move', (req, res) => {
   if (!Number.isInteger(target) || target < 1 || target > trip.capacity) return bad(res, 'Geçersiz koltuk numarası.');
   const busy = db.prepare("SELECT 1 FROM tickets WHERE trip_id=? AND seat_no=? AND status<>'iptal'").get(t.trip_id, target);
   if (busy) return bad(res, 'Hedef koltuk dolu.');
-  const partner = seatPartner(target, trip.rows_cnt, trip.back_row);
+  const partner = seatPartner(target, trip.rows_cnt, trip.back_row, trip.mid_door, trip.mid_door_row);
   if (partner) {
     const op = db.prepare("SELECT * FROM tickets WHERE trip_id=? AND seat_no=? AND status<>'iptal'").get(t.trip_id, partner);
     if (op && op.gender !== t.gender && !(t.group_id && op.group_id === t.group_id) && req.user.role !== 'admin')
@@ -914,6 +1033,7 @@ router.get('/system', adminOnly, (req, res) => {
   ok(res, {
     online: events.onlineCount(),
     counts,
+    surum: require('../package.json').version,
     started: new Date(Date.now() - process.uptime() * 1000).toISOString(),
     node: process.version,
     secure: isSecure(req)

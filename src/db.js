@@ -126,28 +126,48 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX IF NOT EXISTS idx_messages_ticket ON messages(ticket_id);
 `);
 
+/* ------------------------------------------------------------------
+   Sürüm yükseltmeleri
+   Eski bir veritabanı üzerine yeni sürüm kurulduğunda eksik sütunları
+   sessizce ekler. Var olan veriye dokunmaz.
+------------------------------------------------------------------ */
+function sutunEkle(tablo, sutun, tanim) {
+  const varMi = db.prepare(`PRAGMA table_info(${tablo})`).all().some((c) => c.name === sutun);
+  if (!varMi) db.exec(`ALTER TABLE ${tablo} ADD COLUMN ${sutun} ${tanim}`);
+}
+sutunEkle('buses', 'mid_door', 'INTEGER NOT NULL DEFAULT 0');   // orta kapı var mı
+sutunEkle('buses', 'mid_door_row', 'INTEGER NOT NULL DEFAULT 6'); // kaçıncı sırada
+
 // ---------- Koltuk düzeni yardımcıları (2+2) ----------
 /**
- * rows  : 2+2 düzeninde normal sıra sayısı (her sıra 4 koltuk)
- * backRow: en arkada 5 koltuklu sıra var mı (+5 koltuk)
- * Örn: 10 sıra + arka sıra = 45 koltuk (klasik), 13 sıra arka sırasız = 52 koltuk
+ * rows    : 2+2 düzeninde normal sıra sayısı (her sıra 4 koltuk)
+ * backRow : en arkada 5 koltuklu sıra var mı (+5 koltuk)
+ * midDoor : orta kapı var mı (kapı olan sırada sağ taraftaki 2 koltuk yoktur, −2 koltuk)
+ * Örn: 10 sıra + arka sıra = 45 koltuk; orta kapılı hâli 43 koltuk
  */
-function capacityOf(rows, backRow) {
-  return rows * 4 + (backRow ? 5 : 0);
+function capacityOf(rows, backRow, midDoor) {
+  return rows * 4 + (backRow ? 5 : 0) - (midDoor ? 2 : 0);
 }
 
 /**
  * 2+2 düzende koltuk yerleşimi.
  * Her sıra: [sol-pencere, sol-koridor] koridor [sağ-koridor, sağ-pencere]
- * Numaralandırma sıradan sıraya 1,2,3,4 / 5,6,7,8 ...
+ * Orta kapı sırasında sağ taraf kapıdır: [sol-pencere, sol-koridor] koridor [KAPI]
+ * Numaralandırma kesintisizdir; kapı sırasında sadece 2 numara harcanır.
  * Arka sıra (back_row) varsa 5 koltuk yan yana.
  */
-function seatLayout(rows, backRow) {
+function seatLayout(rows, backRow, midDoor, midDoorRow) {
+  const kapiSira = Math.min(Math.max(Number(midDoorRow) || 6, 1), rows);
   const layout = [];
   let n = 1;
-  for (let r = 0; r < rows; r++) {
-    layout.push({ type: 'row', seats: [n, n + 1, null, n + 2, n + 3] });
-    n += 4;
+  for (let r = 1; r <= rows; r++) {
+    if (midDoor && r === kapiSira) {
+      layout.push({ type: 'door', seats: [n, n + 1, null, 'kapi', 'kapi'] });
+      n += 2;
+    } else {
+      layout.push({ type: 'row', seats: [n, n + 1, null, n + 2, n + 3] });
+      n += 4;
+    }
   }
   if (backRow) {
     layout.push({ type: 'back', seats: [n, n + 1, n + 2, n + 3, n + 4] });
@@ -155,19 +175,85 @@ function seatLayout(rows, backRow) {
   return layout;
 }
 
-/** Yan koltuk eşi: (1,2) (3,4) (5,6) ... Arka 5'li sırada eş kuralı uygulanmaz. */
-function seatPartner(seatNo, rows, backRow) {
-  const normalSeats = rows * 4;
-  if (seatNo > normalSeats) return null; // arka sıra
-  return seatNo % 2 === 1 ? seatNo + 1 : seatNo - 1;
+/**
+ * Koltuk numarasından eş koltuğu ve koltuk tipini çıkarır.
+ * Yerleşimden türetilir, böylece orta kapı numaraları kaydırsa da doğru çalışır.
+ */
+function seatIndex(rows, backRow, midDoor, midDoorRow) {
+  const harita = new Map();
+  for (const sira of seatLayout(rows, backRow, midDoor, midDoorRow)) {
+    if (sira.type === 'back') {
+      // Arka 5'li sırada yan koltuk kuralı uygulanmaz
+      for (const s of sira.seats) harita.set(s, { partner: null, kind: 'arka' });
+      continue;
+    }
+    const [a, b, , c, d] = sira.seats;
+    harita.set(a, { partner: b, kind: 'pencere' });
+    harita.set(b, { partner: a, kind: 'koridor' });
+    if (typeof c === 'number' && typeof d === 'number') {
+      harita.set(c, { partner: d, kind: 'koridor' });
+      harita.set(d, { partner: c, kind: 'pencere' });
+    }
+  }
+  return harita;
 }
 
-/** Koltuk tipi etiketi */
-function seatKind(seatNo, rows, backRow) {
-  const normalSeats = rows * 4;
-  if (seatNo > normalSeats) return 'arka';
-  const idx = (seatNo - 1) % 4; // 0=sol pencere,1=sol koridor,2=sağ koridor,3=sağ pencere
-  return idx === 0 || idx === 3 ? 'pencere' : 'koridor';
+/** Yan koltuk eşi. Arka 5'li sırada ve tek kalan koltuklarda null döner. */
+function seatPartner(seatNo, rows, backRow, midDoor, midDoorRow) {
+  const k = seatIndex(rows, backRow, midDoor, midDoorRow).get(Number(seatNo));
+  return k ? k.partner : null;
+}
+
+/** Koltuk tipi etiketi: pencere / koridor / arka */
+function seatKind(seatNo, rows, backRow, midDoor, midDoorRow) {
+  const k = seatIndex(rows, backRow, midDoor, midDoorRow).get(Number(seatNo));
+  return k ? k.kind : 'koridor';
+}
+
+/* ------------------------------------------------------------------
+   Varsayılan firma kimliği
+   Logo, ayrı bir dosyaya bağımlı kalmasın diye doğrudan gömülüdür.
+   Yönetici Ayarlar ekranından kendi logosunu yükleyerek değiştirebilir.
+------------------------------------------------------------------ */
+const LOGO_DOSYASI = path.join(__dirname, '..', 'public', 'icons', 'logo-serhend.svg');
+let LOGO_VERISI = '';
+try {
+  LOGO_VERISI = 'data:image/svg+xml;base64,' + fs.readFileSync(LOGO_DOSYASI).toString('base64');
+} catch { /* logo dosyası yoksa logosuz devam */ }
+
+const VARSAYILAN_FIRMA = {
+  name: 'SERHEND TURİZM',
+  slogan: 'Güvenli ve konforlu yolculuk',
+  phone: '',
+  address: '',
+  website: '',
+  tax_info: '',
+  ticket_note: 'Yolcularımızın kalkış saatinden 15 dakika önce peronda bulunmaları rica olunur. İyi yolculuklar dileriz.',
+  logo: LOGO_VERISI
+};
+
+/* Daha önce kurulmuş sistemlerde: firma bilgisi hiç ayarlanmadıysa ya da
+   eski tanıtım değerleri duruyorsa yeni kimliği yerleştir.
+   Yönetici kendi bilgilerini girdiyse ASLA üzerine yazma. */
+function firmaKimligiGuncelle() {
+  const satir = db.prepare("SELECT value FROM settings WHERE key='company'").get();
+  if (!satir) {
+    db.prepare('INSERT INTO settings (key,value) VALUES (?,?)').run('company', JSON.stringify(VARSAYILAN_FIRMA));
+    return;
+  }
+  let mevcut = {};
+  try { mevcut = JSON.parse(satir.value) || {}; } catch { mevcut = {}; }
+  const dokunulmamis = !mevcut.name || ['ÖZ SEYAHAT TURİZM', 'FİRMA ADI', 'REZERVASYON'].includes(mevcut.name);
+  if (!dokunulmamis) {
+    // Firma adı özelleştirilmiş; sadece logosu hiç yoksa varsayılanı koy
+    if (!mevcut.logo && LOGO_VERISI) {
+      db.prepare('UPDATE settings SET value=? WHERE key=?')
+        .run(JSON.stringify({ ...mevcut, logo: LOGO_VERISI }), 'company');
+    }
+    return;
+  }
+  db.prepare('UPDATE settings SET value=? WHERE key=?')
+    .run(JSON.stringify({ ...VARSAYILAN_FIRMA, ...(mevcut.phone ? { phone: mevcut.phone } : {}) }), 'company');
 }
 
 // ---------- Seed ----------
@@ -184,11 +270,12 @@ function seed() {
   insUser.run('acente2', bcrypt.hashSync('acente123', 10), 'Ayşe Demir', 'acente', 'Demir Seyahat', '0555 222 22 22');
 
   const insBus = db.prepare(
-    'INSERT INTO buses (plate, name, rows_cnt, back_row, capacity, notes) VALUES (?,?,?,?,?,?)'
+    'INSERT INTO buses (plate, name, rows_cnt, back_row, mid_door, mid_door_row, capacity, notes) VALUES (?,?,?,?,?,?,?,?)'
   );
-  insBus.run('34 ABC 123', 'Mercedes Travego', 10, 1, capacityOf(10, 1), 'Klima, WiFi, İkram');   // 45
-  insBus.run('06 XYZ 456', 'Setra S 517', 11, 1, capacityOf(11, 1), 'Klima, USB priz');           // 49
-  insBus.run('35 KFL 789', 'Neoplan Tourliner', 13, 0, capacityOf(13, 0), 'Kafile otobüsü');      // 52
+  // Orta kapılı (6. sırada) — 10 sıra + arka sıra − kapı = 43 koltuk
+  insBus.run('34 ABC 123', 'Mercedes Travego', 10, 1, 1, 6, capacityOf(10, 1, 1), 'Klima, WiFi, İkram, orta kapı');
+  insBus.run('06 XYZ 456', 'Setra S 517', 11, 1, 1, 6, capacityOf(11, 1, 1), 'Klima, USB priz, orta kapı');
+  insBus.run('35 KFL 789', 'Neoplan Tourliner', 13, 0, 0, 6, capacityOf(13, 0, 0), 'Kafile otobüsü, orta kapısız');
 
   const insRoute = db.prepare('INSERT INTO routes (origin, destination, duration_min) VALUES (?,?,?)');
   insRoute.run('İstanbul', 'Ankara', 330);
@@ -212,12 +299,12 @@ function seed() {
   insTrip.run(4, 3, d(3), '07:30', 1400, '');
 
   db.prepare('INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)').run(
-    'company',
-    JSON.stringify({ name: 'ÖZ SEYAHAT TURİZM', phone: '0850 000 00 00', address: 'Otogar / İstanbul' })
+    'company', JSON.stringify(VARSAYILAN_FIRMA)
   );
 }
 
 seed();
+firmaKimligiGuncelle();
 
 /* ------------------------------------------------------------------
    Yedekleme
@@ -258,6 +345,6 @@ function startAutoBackup() {
 
 module.exports = {
   db, DATA_DIR, BACKUP_DIR,
-  capacityOf, seatLayout, seatPartner, seatKind,
+  capacityOf, seatLayout, seatIndex, seatPartner, seatKind,
   makeBackup, pruneBackups, startAutoBackup
 };

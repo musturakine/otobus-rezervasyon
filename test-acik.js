@@ -134,6 +134,19 @@ const login = async (u, p) => (await call('/login', { method: 'POST', body: JSON
 
   kontrol((await call('/public/trips/999999/seatmap')).status === 404, 'Olmayan sefer 404 döndü');
 
+  /* ---------------------------------------------------------------- 7 */
+  console.log('\n7) Kurulum denetimi (eksik dosya koruması)');
+  const saglik = await (await fetch('http://localhost:3111/saglik')).json();
+  kontrol(saglik.ok === true, 'Sağlık kontrolü tüm dosyaları yerinde buldu');
+  kontrol(!!saglik.surum, 'Sürüm numarası bildiriliyor', saglik.surum);
+  kontrol(Array.isArray(saglik.eksik) && saglik.eksik.length === 0, 'Eksik dosya yok');
+
+  const durumSayfa = await fetch('http://localhost:3111/durum');
+  const durumMetin = await durumSayfa.text();
+  kontrol(durumSayfa.status === 200, 'Durum sayfası açılıyor');
+  kontrol(/Her şey yolunda/.test(durumMetin), 'Durum sayfası yeşil rapor veriyor');
+  kontrol(durumMetin.includes(saglik.surum), 'Durum sayfasında sürüm görünüyor');
+
   console.log(`\n═══ SONUÇ: ${gecti} başarılı, ${kaldi} başarısız ═══\n`);
   process.exit(kaldi ? 1 : 0);
 })();

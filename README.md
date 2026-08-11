@@ -5,12 +5,24 @@ giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
 
 ---
 
-> **Adım adım Türkçe rehber için `KURULUM.html` dosyasını tarayıcıda açın.**
-> Kurulum, telefona ekleme ve internete açma resimli/anlatımlı olarak orada.
+> **Kurulum için** `KURULUM.html` dosyasını tarayıcıda açın.
+> **Sistemi güncellerken** `GUNCELLEME.md` dosyasını okuyun — dosya atlanmasını önleyen
+> güvenli yöntem orada anlatılıyor.
 
 ---
 
 ## Neler var?
+
+**Kendi kendini denetleyen kurulum (yeni)**
+
+- `/durum` adresi, **her dosyanın sunucuya doğru yüklenip yüklenmediğini** gösterir —
+  güncellemeden sonra tek bakışta doğrulama
+- Bir dosya eksik yüklenirse site **artık komple kapanmıyor**: sorunu anlatan bir sayfa
+  gösteriyor ve **personel girişi çalışmaya devam ediyor**, satış durmuyor
+- Açılışta konsola hangi dosyanın eksik olduğu ve hangi klasörü yeniden yüklemek
+  gerektiği yazılır
+- `/saglik` adresi sürümü ve eksik dosya listesini JSON olarak döner
+- Güvenli güncelleme yöntemi için → **`GUNCELLEME.md`**
 
 **Herkese açık sefer sayfası (yeni)**
 
@@ -217,7 +229,7 @@ Kural ve güvenlik testleri (sunucu çalışırken):
 ```bash
 node test-api.js     # 30 test — satış kuralları
 node test-silme.js   # 40 test — silme, çöp kutusu, firma kimliği
-node test-acik.js    # 36 test — herkese açık sayfa, orta kapı, gizlilik
+node test-acik.js    # 42 test — herkese açık sayfa, orta kapı, gizlilik, kurulum denetimi
 ```
 
 veya ikisi birden:
@@ -246,6 +258,7 @@ src/db.js            Veritabanı şeması, koltuk düzeni hesapları, örnek ver
 src/auth.js          Giriş, JWT, rol kontrolü
 src/api.js           Tüm API uçları (satış, iptal, rapor, tanımlar, silme)
 src/trash.js         Çöp kutusu: silme, geri alma, otomatik temizlik
+src/durum.js         Kurulum denetimi, /durum sayfası, eksik dosya koruması
 public/anasayfa.html Herkese açık sefer ve koltuk sayfası
 public/index.html    Personel giriş ekranı (/giris)
 public/app.html      Uygulama kabuğu
