@@ -1,0 +1,6 @@
+/* Tailwind kaynak dosyası.
+   Bu dosyadan public/css/tailwind.css üretilir:  npm run stil
+   Üretilen dosya pakete dahildir; normalde yeniden üretmenize gerek yoktur. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

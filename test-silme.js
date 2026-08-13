@@ -21,17 +21,18 @@ async function call(yol, opts = {}, tok) {
 }
 const login = async (u, p) => (await call('/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) })).body.token;
 
+const { hazirla, gun } = require('./test-kurulum');
+
 (async () => {
   console.log('\n═══ SİLME & ÇÖP KUTUSU TESTLERİ ═══\n');
 
-  const admin = await login('admin', 'admin123');
-  const acente = await login('acente1', 'acente123');
+  const kur = await hazirla();
+  const admin = kur.admin, acente = kur.acente1;
   if (!admin) { console.log('Yönetici girişi yapılamadı. Sunucu açık mı?'); process.exit(1); }
 
   /* ---------------------------------------------------------------- 1 */
   console.log('1) Yetki kontrolü');
-  const trips = (await call('/trips', {}, admin)).body;
-  const T = trips[0].id;
+  const T = kur.seferler.bos;
 
   kontrol((await call(`/trips/${T}`, { method: 'DELETE' }, acente)).status === 403,
     'Acente sefer silemedi');
@@ -108,7 +109,7 @@ const login = async (u, p) => (await call('/login', { method: 'POST', body: JSON
   const digerAdmin = users.filter((u) => u.role === 'admin' && u.id !== ben.id);
   if (!digerAdmin.length) ok('Sistemde tek yönetici var — son yönetici koruması devrede');
 
-  const ac1 = users.find((u) => u.username === 'acente1');
+  const ac1 = users.find((u) => u.username === 'test_acente1');
   const acSil = (await call(`/users/${ac1.id}`, { method: 'DELETE' }, admin)).body;
   kontrol(acSil.ok === true, 'Acente silindi');
   kontrol(!(await call('/users', {}, admin)).body.some((u) => u.id === ac1.id), 'Acente listeden kalktı');
@@ -134,7 +135,43 @@ const login = async (u, p) => (await call('/login', { method: 'POST', body: JSON
   kontrol((await call('/trash', {}, admin)).body.items.length === 0, 'Çöp kutusu gerçekten boş');
 
   /* ---------------------------------------------------------------- 8 */
-  console.log('\n8) Firma kimliği');
+  console.log('\n8) Toplu sefer silme ve geri alma');
+  const yeni = await call('/trips', {
+    method: 'POST',
+    body: JSON.stringify({
+      route_id: kur.guzergahlar.rotaC, bus_id: kur.otobusler.bus2,
+      depart_date: gun(20), depart_time: '18:00', price: 3000, repeat_days: 12
+    })
+  }, admin);
+  kontrol(yeni.body.count === 12, 'Tekrarlı sefer 12 kayıt oluşturdu', yeni.body.count + '');
+
+  const topluIdler = yeni.body.ids;
+  await call(`/trips/${topluIdler[0]}/sell`, {
+    method: 'POST',
+    body: JSON.stringify({ passengers: [{ seat_no: 3, passenger_name: 'Toplu Test', gender: 'E' }] })
+  }, admin);
+
+  const seferOnceT = (await call('/trips', {}, admin)).body.length;
+  const toplu = (await call('/trips/toplu-sil', { method: 'POST', body: JSON.stringify({ ids: topluIdler }) }, admin)).body;
+  kontrol(toplu.silinen === 12, '12 seferin tamamı tek hamlede silindi', toplu.silinen + '');
+  kontrol(toplu.bilet === 1, 'Silinen bilet sayısı bildirildi', toplu.bilet + ' bilet');
+  kontrol(toplu.trash_ids.length === 12, 'Her sefer için çöp numarası döndü');
+  kontrol((await call('/trips', {}, admin)).body.length === seferOnceT - 12, 'Seferler listeden kalktı');
+
+  const topluGeri = (await call('/trash/toplu-geri-al', { method: 'POST', body: JSON.stringify({ ids: toplu.trash_ids }) }, admin)).body;
+  kontrol(topluGeri.geri_alinan === 12, '12 seferin tamamı geri alındı', topluGeri.geri_alinan + '');
+  kontrol(topluGeri.hata === 0, 'Geri alırken hata çıkmadı');
+  kontrol((await call('/trips', {}, admin)).body.length === seferOnceT, 'Sefer sayısı eski hâline döndü');
+  kontrol((await call('/tickets', {}, admin)).body.some((t) => t.passenger_name === 'TOPLU TEST'),
+    'Toplu silmede giden bilet de geri geldi');
+
+  kontrol((await call('/trips/toplu-sil', { method: 'POST', body: JSON.stringify({ ids: topluIdler }) }, acente)).status === 403,
+    'Acente toplu silme yapamadı');
+  kontrol((await call('/trips/toplu-sil', { method: 'POST', body: JSON.stringify({ ids: [] }) }, admin)).status === 400,
+    'Boş liste reddedildi');
+
+  /* ---------------------------------------------------------------- 9 */
+  console.log('\n9) Firma kimliği');
   const kucukPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
   const kaydet = (await call('/settings', {
     method: 'PUT',

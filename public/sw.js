@@ -3,12 +3,12 @@
 
    ÖNEMLİ: Sürüm numarası her güncellemede değişmelidir. Değişince tarayıcı
    eski önbelleği siler ve yeni dosyaları indirir. */
-const SURUM = 'otobus-v1.4.0';
+const SURUM = 'otobus-v1.9.0';
 
 /* Çevrimdışıyken lazım olacak dosyalar */
 const KABUK = [
   '/', '/anasayfa.html', '/index.html', '/app.html', '/cevrimdisi.html',
-  '/css/style.css', '/js/app.js',
+  '/css/style.css', '/css/tailwind.css', '/js/app.js',
   '/manifest.webmanifest',
   '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png'
 ];

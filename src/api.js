@@ -1,7 +1,7 @@
 'use strict';
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { db, capacityOf, seatLayout, seatIndex, seatPartner, seatKind, makeBackup, BACKUP_DIR } = require('./db');
+const { db, capacityOf, seatLayout, seatIndex, seatPartner, seatKind, makeBackup, BACKUP_DIR, demoSayimi } = require('./db');
 const {
   sign, auth, adminOnly, log,
   loginLimiter, noteLoginFail, noteLoginOk, isSecure
@@ -102,7 +102,20 @@ router.post('/me/password', auth, (req, res) => {
 ================================================================== */
 router.get('/public/settings', (req, res) => {
   const c = getCompany();
+  /* Sistem henüz kurulmamışsa (tek yönetici, şifre hâlâ varsayılan) giriş
+     ekranında ilk kurulum bilgisi gösterilir. Şifre değiştirilir değiştirilmez
+     bu bilgi kaybolur. */
+  let ilkKurulum = false;
+  try {
+    const sayi = db.prepare('SELECT COUNT(*) c FROM users').get().c;
+    if (sayi === 1) {
+      const yonetici = db.prepare("SELECT password_hash FROM users WHERE role='admin'").get();
+      ilkKurulum = !!yonetici && bcrypt.compareSync('admin123', yonetici.password_hash);
+    }
+  } catch { /* önemsiz */ }
+
   ok(res, {
+    ilk_kurulum: ilkKurulum,
     company: {
       name: c.name, slogan: c.slogan, phone: c.phone,
       address: c.address, website: c.website, logo: c.logo
@@ -883,11 +896,14 @@ router.put('/settings', adminOnly, (req, res) => {
   if (!c || !c.name || !String(c.name).trim()) return bad(res, 'Firma adı zorunlu.');
 
   const metin = (v, max) => String(v ?? '').trim().slice(0, max);
+  /* Logo ya sistemle gelen bir dosya yolu, ya da yöneticinin yüklediği resim verisidir. */
   const logo = String(c.logo ?? '');
   if (logo) {
-    if (!/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);base64,/.test(logo))
+    const yerelDosya = /^\/icons\/[A-Za-z0-9._-]+\.(png|jpg|jpeg|webp|svg)$/.test(logo);
+    const veriAdresi = /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);base64,/.test(logo);
+    if (!yerelDosya && !veriAdresi)
       return bad(res, 'Logo geçerli bir resim dosyası olmalı (PNG, JPG veya WEBP).');
-    if (logo.length > 400 * 1024)
+    if (veriAdresi && logo.length > 400 * 1024)
       return bad(res, 'Logo dosyası çok büyük. Lütfen daha küçük bir resim seçin (en fazla ~300 KB).');
   }
 
@@ -1104,6 +1120,96 @@ router.delete('/users/:id', adminOnly, silmeUcu('user', (req, id) => {
   }
   return null;
 }));
+
+/* ------------------------------------------------------------------
+   Örnek (demo) veri temizliği
+   Sistemin eski sürümleri tanıtım amaçlı örnek otobüs, güzergah, sefer ve
+   acente hesabı ile geliyordu. Bunlar firmanın kendi kayıtları değildir.
+   Buradan tek tuşla temizlenir — hepsi çöp kutusuna gider, geri alınabilir.
+------------------------------------------------------------------ */
+router.get('/demo', adminOnly, (req, res) => {
+  const d = demoSayimi();
+  ok(res, {
+    varMi: d.varMi,
+    toplam: d.toplam,
+    otobusler: d.otobusler.map((b) => `${b.plate} — ${b.name}`),
+    guzergahlar: d.guzergahlar.map((r) => `${r.origin} → ${r.destination}`),
+    kullanicilar: d.kullanicilar.map((u) => `${u.full_name} (${u.username})`),
+    seferSayisi: d.seferSayisi,
+    biletSayisi: d.biletSayisi
+  });
+});
+
+router.post('/demo/temizle', adminOnly, (req, res) => {
+  const d = demoSayimi();
+  if (!d.varMi) return ok(res, { ok: true, silinen: 0, mesaj: 'Temizlenecek örnek kayıt yok.' });
+
+  const silinenler = [];
+  const dene = (tur, id) => {
+    try { silinenler.push(trash.sil(tur, id, req.user)); } catch { /* zaten gitmişse atla */ }
+  };
+
+  /* Otobüs ve güzergah silinince bağlı seferler de birlikte gider */
+  d.otobusler.forEach((b) => dene('bus', b.id));
+  d.guzergahlar.forEach((r) => dene('route', r.id));
+  d.kullanicilar.forEach((u) => { if (u.id !== req.user.id) dene('user', u.id); });
+
+  log(req, 'demo_temizle', `${silinenler.length} örnek kayıt çöp kutusuna taşındı`);
+  notifyTrip(req, 'delete', {});
+  ok(res, {
+    ok: true,
+    silinen: silinenler.length,
+    biletVardi: d.biletSayisi,
+    etiketler: silinenler.map((s) => s.label)
+  });
+});
+
+/* ------------------------------------------------------------------
+   Toplu sefer silme
+   "30 gün tekrarla" ile açılmış onlarca seferi tek tek silmek zor.
+   Buradan işaretlenenler bir kerede çöp kutusuna taşınır.
+------------------------------------------------------------------ */
+router.post('/trips/toplu-sil', adminOnly, (req, res) => {
+  const idler = Array.isArray(req.body && req.body.ids) ? req.body.ids.map(Number).filter(Boolean) : [];
+  if (!idler.length) return bad(res, 'Silinecek sefer seçilmedi.');
+  if (idler.length > 400) return bad(res, 'Tek seferde en fazla 400 sefer silinebilir.');
+
+  const silinen = [];
+  const hatalar = [];
+  for (const id of idler) {
+    try { silinen.push(trash.sil('trip', id, req.user)); }
+    catch (e) { hatalar.push({ id, hata: e.message }); }
+  }
+
+  const bilet = silinen.reduce((s, x) => s + (x.counts ? x.counts.tickets : 0), 0);
+  log(req, 'sefer_toplu_sil', `${silinen.length} sefer, ${bilet} bilet`);
+  notifyTrip(req, 'delete', { count: silinen.length });
+
+  ok(res, {
+    ok: true,
+    silinen: silinen.length,
+    bilet,
+    trash_ids: silinen.map((x) => x.trash_id),
+    atlanan: hatalar.length
+  });
+});
+
+/** Birden fazla çöp kaydını tek hamlede geri alır (toplu silmenin geri alınması). */
+router.post('/trash/toplu-geri-al', adminOnly, (req, res) => {
+  const idler = Array.isArray(req.body && req.body.ids) ? req.body.ids.map(Number).filter(Boolean) : [];
+  if (!idler.length) return bad(res, 'Geri alınacak kayıt seçilmedi.');
+
+  let basarili = 0;
+  const hatalar = [];
+  /* Ebeveyn kayıtlar önce dönmeli; çöp numarası küçük olan önce eklenmiştir */
+  for (const id of idler.slice().sort((a, b) => a - b)) {
+    try { trash.geriAl(id); basarili++; }
+    catch (e) { hatalar.push(e.message); }
+  }
+  log(req, 'cop_toplu_geri_al', `${basarili} kayıt`);
+  notifyTrip(req, 'restore', {});
+  ok(res, { ok: true, geri_alinan: basarili, hata: hatalar.length, ilkHata: hatalar[0] || null });
+});
 
 router.get('/trash', adminOnly, (req, res) => {
   ok(res, { saklama_gun: trash.SAKLAMA_GUN, items: trash.listele() });

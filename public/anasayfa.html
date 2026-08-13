@@ -3,329 +3,253 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Serhend Turizm — Sefer ve Koltuk Durumu</title>
+<title>Serhendi Turizm — Sefer ve Koltuk Durumu</title>
 <meta name="description" content="Sefer saatlerimizi, güzergahlarımızı ve otobüs koltuk doluluğunu anlık olarak görüntüleyin.">
-<meta name="theme-color" content="#0b1f3a">
-<link rel="icon" href="/icons/logo-serhend.svg">
+<meta name="theme-color" content="#08301d">
+<link rel="icon" href="/icons/amblem-serhendi.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/tailwind.css">
 <style>
-:root{
-  --lacivert:#0b1f3a; --lacivert-2:#12325f; --mavi:#2563eb;
-  --turkuaz:#0ea5a4; --turkuaz-acik:#5eead4;
-  --zemin:#f5f7fb; --kart:#ffffff;
-  --yazi:#0f172a; --soluk:#64748b; --cok-soluk:#94a3b8;
-  --cizgi:#e2e8f0; --cizgi-koyu:#cbd5e1;
-  --bay:#2563eb; --bay-zemin:#dbeafe; --bay-cizgi:#93c5fd;
-  --bayan:#db2777; --bayan-zemin:#fce7f3; --bayan-cizgi:#f9a8d4;
-  --bos:#059669; --bos-zemin:#ecfdf5;
-  --r:14px; --r-b:22px;
-  --golge:0 4px 14px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.05);
-  --golge-b:0 18px 45px rgba(11,31,58,.16);
-}
-*,*::before,*::after{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{
-  font-family:"Plus Jakarta Sans","Segoe UI",Roboto,-apple-system,sans-serif;
-  background:var(--zemin); color:var(--yazi); font-size:15px; line-height:1.6;
-  -webkit-font-smoothing:antialiased;
-}
-h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.025em;line-height:1.2}
-a{color:inherit;text-decoration:none}
-button{font:inherit;cursor:pointer}
-.sar{max-width:1120px;margin:0 auto;padding:0 20px}
-
-/* ---------------- ÜST ÇUBUK ---------------- */
-.ust{position:sticky;top:0;z-index:40;background:rgba(11,31,58,.92);backdrop-filter:blur(12px);
-  border-bottom:1px solid rgba(255,255,255,.08)}
-.ust .sar{display:flex;align-items:center;gap:14px;height:70px}
-.marka{display:flex;align-items:center;gap:12px;min-width:0}
-.marka img{width:44px;height:44px;border-radius:12px;flex-shrink:0;display:block}
-.marka .ad{color:#fff;font-weight:800;font-size:17px;letter-spacing:.01em;line-height:1.15}
-.marka .slogan{color:#9fb6d9;font-size:11.5px;font-weight:500;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis}
-.ust .bosluk{flex:1}
-.ust-dugme{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:10px;
-  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);color:#fff;
-  font-size:13.5px;font-weight:600;transition:background .15s}
-.ust-dugme:hover{background:rgba(255,255,255,.2)}
-.ust-dugme svg{width:16px;height:16px}
-.ust-tel{background:linear-gradient(135deg,var(--turkuaz),#0f766e);border-color:transparent}
-
-/* ---------------- KAHRAMAN ---------------- */
-.kahraman{position:relative;overflow:hidden;color:#fff;
-  background:linear-gradient(155deg,var(--lacivert) 0%,var(--lacivert-2) 55%,#14406e 100%);
-  padding:56px 0 92px}
-.kahraman::after{content:"";position:absolute;right:-140px;top:-90px;width:460px;height:460px;
-  border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(14,165,164,.45),transparent 62%)}
-.kahraman::before{content:"";position:absolute;left:-120px;bottom:-200px;width:420px;height:420px;
-  border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.35),transparent 65%)}
-.kahraman .sar{position:relative;z-index:2}
-.kahraman h1{font-size:clamp(28px,5vw,44px);max-width:16ch;margin-bottom:14px}
-.kahraman p{color:#c3d5f0;max-width:52ch;margin:0;font-size:16px}
-.rozetler{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
-.rozetler span{background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.18);
-  padding:7px 14px;border-radius:999px;font-size:13px;font-weight:500}
-
-/* ---------------- ARAMA ---------------- */
-.arama{background:var(--kart);border-radius:var(--r-b);box-shadow:var(--golge-b);
-  padding:20px;margin-top:-58px;position:relative;z-index:5}
-.arama-grid{display:grid;grid-template-columns:1.4fr 1fr auto;gap:12px;align-items:end}
-.alan label{display:block;font-size:12px;font-weight:700;color:var(--soluk);
-  margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
-.girdi{width:100%;padding:13px 14px;border:1.5px solid var(--cizgi);border-radius:11px;
-  background:var(--kart);outline:none;font-size:15px;transition:border-color .15s,box-shadow .15s}
-.girdi:focus{border-color:var(--mavi);box-shadow:0 0 0 3.5px rgba(37,99,235,.14)}
-select.girdi{appearance:none;padding-right:38px;
-  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 13px center;background-size:17px}
-.ara-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:14px 26px;border:none;border-radius:11px;color:#fff;font-weight:700;font-size:15px;
-  background:linear-gradient(135deg,var(--mavi),#1d4ed8);box-shadow:0 6px 18px rgba(37,99,235,.32);
-  transition:box-shadow .15s,transform .08s}
-.ara-btn:hover{box-shadow:0 8px 24px rgba(37,99,235,.44)}
-.ara-btn:active{transform:translateY(1px)}
-.ara-btn svg{width:17px;height:17px}
-.hizli{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--cizgi)}
-.hizli button{background:var(--zemin);border:1px solid var(--cizgi);border-radius:999px;
-  padding:7px 14px;font-size:13px;font-weight:600;color:var(--soluk);transition:all .15s}
-.hizli button:hover,.hizli button.secili{background:var(--lacivert);border-color:var(--lacivert);color:#fff}
-
-/* ---------------- SEFER KARTLARI ---------------- */
-.bolum{padding:44px 0 64px}
-.bolum-bas{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-.bolum-bas h2{font-size:22px}
-.sayi-rozet{background:var(--kart);border:1px solid var(--cizgi);border-radius:999px;
-  padding:4px 12px;font-size:13px;font-weight:700;color:var(--soluk)}
-.gun-bas{display:flex;align-items:center;gap:10px;margin:26px 0 12px}
-.gun-bas h3{font-size:15.5px;color:var(--lacivert)}
-.gun-bas .cizgi{flex:1;height:1px;background:var(--cizgi)}
-
-.kartlar{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
-.sefer{background:var(--kart);border:1px solid var(--cizgi);border-radius:var(--r);
-  padding:18px;cursor:pointer;transition:transform .12s,box-shadow .18s,border-color .18s;
-  display:flex;flex-direction:column;gap:14px}
-.sefer:hover{transform:translateY(-2px);box-shadow:var(--golge-b);border-color:var(--lacivert-2)}
-.sefer-ust{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.saat{font-size:27px;font-weight:800;letter-spacing:-.03em;line-height:1}
-.saat small{display:block;font-size:11.5px;font-weight:600;color:var(--cok-soluk);
-  text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
-.fiyat{text-align:right}
-.fiyat b{font-size:21px;font-weight:800;color:var(--lacivert)}
-.fiyat small{display:block;font-size:11.5px;color:var(--cok-soluk);font-weight:600}
-.guzergah{display:flex;align-items:center;gap:11px;font-weight:700;font-size:16px}
-.guzergah .ok{color:var(--turkuaz);flex-shrink:0}
-.guzergah .ok svg{width:19px;height:19px;display:block}
-.sefer-alt{display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding-top:13px;border-top:1px dashed var(--cizgi)}
-.doluluk{flex:1;min-width:0}
-.cubuk{height:7px;border-radius:99px;background:var(--cizgi);overflow:hidden;margin-bottom:6px}
-.cubuk i{display:block;height:100%;border-radius:99px;
-  background:linear-gradient(90deg,var(--turkuaz),var(--mavi))}
-.doluluk span{font-size:12.5px;color:var(--soluk);font-weight:600}
-.bak{display:inline-flex;align-items:center;gap:6px;background:var(--zemin);
-  border:1px solid var(--cizgi);border-radius:9px;padding:8px 13px;
-  font-size:13px;font-weight:700;color:var(--lacivert);white-space:nowrap}
-.sefer:hover .bak{background:var(--lacivert);border-color:var(--lacivert);color:#fff}
-.doldu{background:var(--bayan-zemin);color:var(--bayan);border-color:transparent}
-
-.bos-kutu{background:var(--kart);border:1px dashed var(--cizgi-koyu);border-radius:var(--r-b);
-  padding:56px 24px;text-align:center;color:var(--soluk)}
-.bos-kutu svg{width:46px;height:46px;opacity:.3;margin-bottom:12px}
-.bos-kutu b{display:block;font-size:17px;color:var(--yazi);margin-bottom:5px}
-
-/* ---------------- KOLTUK PENCERESİ ---------------- */
-.perde{position:fixed;inset:0;z-index:80;background:rgba(9,17,32,.6);backdrop-filter:blur(5px);
-  display:flex;align-items:center;justify-content:center;padding:20px}
-.pencere{background:var(--kart);border-radius:var(--r-b);width:100%;max-width:560px;
-  max-height:92vh;overflow:auto;box-shadow:var(--golge-b)}
-.pencere-bas{position:sticky;top:0;background:var(--kart);z-index:2;
-  padding:20px 22px 14px;border-bottom:1px solid var(--cizgi);
-  display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.pencere-bas h3{font-size:19px;margin-bottom:3px}
-.pencere-bas p{margin:0;color:var(--soluk);font-size:13.5px}
-.kapat{background:var(--zemin);border:1px solid var(--cizgi);border-radius:9px;
-  width:34px;height:34px;display:grid;place-items:center;color:var(--soluk);flex-shrink:0}
-.kapat:hover{background:var(--cizgi)}
-.kapat svg{width:17px;height:17px}
-.pencere-govde{padding:20px 22px 22px}
-
-.gosterge{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-bottom:18px;
-  padding:12px;background:var(--zemin);border-radius:12px}
-.gosterge div{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--soluk)}
-.ornek{width:17px;height:17px;border-radius:5px;border:1.5px solid}
-.ornek.bos{background:var(--bos-zemin);border-color:var(--bos)}
-.ornek.bay{background:var(--bay-zemin);border-color:var(--bay-cizgi)}
-.ornek.bayan{background:var(--bayan-zemin);border-color:var(--bayan-cizgi)}
-
-.otobus{background:var(--zemin);border:2px solid var(--cizgi-koyu);border-radius:20px 20px 14px 14px;
-  padding:16px 14px 20px;max-width:330px;margin:0 auto}
-.sofor{display:flex;justify-content:flex-end;padding:0 4px 12px;margin-bottom:12px;
-  border-bottom:2px dashed var(--cizgi-koyu)}
-.direksiyon{width:34px;height:34px;border-radius:50%;border:3px solid var(--cok-soluk);
-  display:grid;place-items:center;color:var(--cok-soluk)}
-.direksiyon svg{width:16px;height:16px}
-.sira{display:grid;grid-template-columns:1fr 1fr 22px 1fr 1fr;gap:7px;margin-bottom:7px;align-items:center}
-.sira.arka{grid-template-columns:repeat(5,1fr)}
-.koridor{text-align:center;color:var(--cizgi-koyu);font-size:11px;user-select:none}
-.koltuk{aspect-ratio:1/.92;min-height:40px;border-radius:9px;border:1.5px solid var(--cizgi-koyu);
-  background:var(--kart);display:grid;place-items:center;font-weight:800;font-size:14px;
-  color:var(--soluk);position:relative}
-.koltuk.bos{background:var(--bos-zemin);border-color:var(--bos);color:var(--bos)}
-.koltuk.bay{background:var(--bay-zemin);border-color:var(--bay-cizgi);color:var(--bay)}
-.koltuk.bayan{background:var(--bayan-zemin);border-color:var(--bayan-cizgi);color:var(--bayan)}
-.kapi{grid-column:span 2;min-height:40px;border-radius:9px;border:1.5px dashed var(--cizgi-koyu);
-  background:repeating-linear-gradient(45deg,transparent,transparent 6px,rgba(148,163,184,.16) 6px,rgba(148,163,184,.16) 12px);
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  font-size:10.5px;font-weight:800;color:var(--cok-soluk);letter-spacing:.05em}
-.kapi svg{width:15px;height:15px}
-
-.ozet{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
-.ozet div{background:var(--zemin);border-radius:11px;padding:12px;text-align:center}
-.ozet b{display:block;font-size:22px;font-weight:800;line-height:1.1}
-.ozet small{font-size:11.5px;color:var(--soluk);font-weight:600}
-.ozet .y b{color:var(--bos)}
-
-.cagri{background:linear-gradient(140deg,var(--lacivert),var(--lacivert-2));
-  border-radius:var(--r);padding:18px;color:#fff;text-align:center}
-.cagri p{margin:0 0 14px;font-size:13.5px;color:#c3d5f0}
-.cagri-btnlar{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
-.cagri-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:11px;
-  font-weight:700;font-size:14.5px;border:none;color:#fff;transition:filter .15s}
-.cagri-btn:hover{filter:brightness(1.1)}
-.cagri-btn svg{width:17px;height:17px}
-.btn-tel{background:linear-gradient(135deg,var(--turkuaz),#0f766e)}
-.btn-wa{background:linear-gradient(135deg,#25d366,#128c7e)}
-
-/* ---------------- ALT BİLGİ ---------------- */
-.alt{background:var(--lacivert);color:#9fb6d9;padding:40px 0 30px;margin-top:20px}
-.alt-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px;margin-bottom:28px}
-.alt h4{color:#fff;font-size:14px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.06em}
-.alt p,.alt li{font-size:14px;margin:0 0 8px;line-height:1.65}
-.alt ul{list-style:none;padding:0;margin:0}
-.alt a:hover{color:#fff}
-.alt .iletisim{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px}
-.alt .iletisim svg{width:16px;height:16px;flex-shrink:0;margin-top:4px;color:var(--turkuaz-acik)}
-.alt-son{border-top:1px solid rgba(255,255,255,.1);padding-top:20px;
-  display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:13px}
-
-.yukleniyor{text-align:center;padding:56px;color:var(--soluk)}
-.donen{display:inline-block;width:22px;height:22px;border:2.5px solid var(--cizgi);
-  border-top-color:var(--mavi);border-radius:50%;animation:don .7s linear infinite;vertical-align:-5px;margin-right:9px}
-@keyframes don{to{transform:rotate(360deg)}}
-
-@media (max-width:860px){
-  .arama-grid{grid-template-columns:1fr}
-  .alt-grid{grid-template-columns:1fr;gap:24px}
-  .kahraman{padding:40px 0 82px}
-}
-@media (max-width:560px){
-  .ust .sar{height:62px;gap:9px}
-  .marka img{width:38px;height:38px}
-  .marka .ad{font-size:15px}
-  .marka .slogan{display:none}
-  .ust-dugme span{display:none}
-  .ust-dugme{padding:9px 11px}
-  .kartlar{grid-template-columns:1fr}
-  .arama{border-radius:18px;padding:16px}
-  .girdi{font-size:16px}
-  .perde{padding:0;align-items:flex-end}
-  .pencere{max-width:100%;border-radius:20px 20px 0 0;max-height:94vh}
-  .sefer{padding:15px}
-}
+  html{scroll-behavior:smooth}
+  .desen-yol{
+    background-image:repeating-linear-gradient(115deg,transparent 0 78px,rgba(255,255,255,.5) 78px 132px);
+    -webkit-mask-image:linear-gradient(to bottom,transparent,#000 35%,#000 65%,transparent);
+    mask-image:linear-gradient(to bottom,transparent,#000 35%,#000 65%,transparent);
+    animation:kay 9s linear infinite;
+  }
+  @keyframes kay{to{background-position:420px 0}}
+  @keyframes yuz{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,50px) scale(1.12)}}
+  .isik-1{animation:yuz 18s ease-in-out infinite}
+  .isik-2{animation:yuz 22s ease-in-out infinite reverse}
+  .bel{animation:bel .7s cubic-bezier(.2,.9,.3,1.05) both}
+  @keyframes bel{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
-<body>
+<body class="bg-fildisi font-sans text-slate-900 antialiased">
 
-<header class="ust">
-  <div class="sar">
-    <a class="marka" href="/">
-      <img id="logo" src="/icons/logo-serhend.svg" alt="">
-      <div style="min-width:0">
-        <div class="ad" id="firmaAdi">SERHEND TURİZM</div>
-        <div class="slogan" id="firmaSlogan"></div>
+<!-- ══════════════ KARŞILAMA ══════════════ -->
+<header class="relative flex min-h-[100svh] flex-col overflow-hidden bg-gradient-to-br from-marka-900 via-marka-700 to-marka-500 text-white">
+  <div class="isik-1 pointer-events-none absolute -right-44 -top-56 h-[640px] w-[640px] rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(215,187,85,.34),transparent_62%)] blur-[10px]"></div>
+  <div class="isik-2 pointer-events-none absolute -bottom-60 -left-40 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle,rgba(30,138,85,.42),transparent_66%)] blur-[10px]"></div>
+  <div class="desen-yol pointer-events-none absolute inset-0 opacity-[.16]"></div>
+
+  <div class="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-5">
+
+    <!-- Üst şerit -->
+    <div class="flex items-center gap-4 py-6">
+      <a href="/" class="flex min-w-0 items-center gap-3">
+        <img id="logo" src="/icons/amblem-serhendi.png" alt="" class="h-13 w-13 flex-shrink-0 rounded-2xl shadow-2xl shadow-black/35">
+        <span class="min-w-0">
+          <span id="firmaAdi" class="block whitespace-nowrap text-[19px] font-extrabold leading-tight tracking-tight">SERHENDİ TURİZM</span>
+          <span id="firmaSlogan" class="block truncate text-[12px] font-medium text-marka-100/70"></span>
+        </span>
+      </a>
+      <div class="flex-1"></div>
+      <a id="telUst" href="#" style="display:none"
+        class="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-[14px] font-semibold backdrop-blur transition-all duration-300 hover:bg-white/20 active:translate-y-px">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.4 1.8.6 2.8.8A2 2 0 0 1 22 16.9z"/></svg>
+        <span id="telUstYazi" class="hidden sm:inline">Bizi arayın</span>
+      </a>
+    </div>
+
+    <!-- Orta -->
+    <div class="flex flex-1 flex-col justify-center py-8 text-center">
+      <div class="bel mx-auto mb-6 inline-flex items-center gap-2.5 rounded-full border border-altin-300/35 bg-altin-300/12 px-4 py-2 text-[13px] font-bold tracking-wide text-altin-200">
+        <span class="relative flex h-2 w-2">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-altin-300 opacity-70"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-altin-300"></span>
+        </span>
+        Koltuk durumu anlık güncellenir
       </div>
-    </a>
-    <div class="bosluk"></div>
-    <a class="ust-dugme ust-tel" id="telUst" href="#" style="display:none">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.4 1.8.6 2.8.8A2 2 0 0 1 22 16.9z"/></svg>
-      <span id="telUstYazi">Bizi arayın</span>
-    </a>
-    <a class="ust-dugme" href="/giris">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
-      <span>Personel girişi</span>
-    </a>
+
+      <h1 class="bel text-[clamp(34px,6.4vw,66px)] font-extrabold leading-[1.1] tracking-[-.035em]" style="animation-delay:.08s">
+        Yolculuğunuz<br>
+        <span class="bg-gradient-to-r from-altin-200 via-altin-300 to-altin-400 bg-clip-text text-transparent">güvende başlasın.</span>
+      </h1>
+
+      <p class="bel mx-auto mt-5 max-w-2xl text-[clamp(15px,2vw,19px)] leading-relaxed text-marka-100/80" style="animation-delay:.16s">
+        Sefer saatlerimizi görün, otobüsün koltuk planını inceleyin,
+        beğendiğiniz koltuğu telefonla ayırtın. Hepsi birkaç saniyede.
+      </p>
+
+      <!-- İKİ AYRI GİRİŞ -->
+      <div class="bel mx-auto mt-11 grid w-full max-w-3xl gap-4 sm:grid-cols-2" style="animation-delay:.24s">
+        <a href="#bilet-arama" id="musteriBtn"
+          class="group flex flex-col gap-3 rounded-2xl border border-altin-300/45 bg-gradient-to-br from-altin-400/22 to-marka-400/25 p-6 text-left backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-altin-200/70 hover:from-altin-400/32 hover:to-marka-400/35 hover:shadow-2xl hover:shadow-black/30">
+          <span class="inline-flex h-13 w-13 items-center justify-center rounded-2xl bg-gradient-to-br from-altin-400 to-altin-600 shadow-lg shadow-altin-600/40">
+            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h16M6 17v2M18 17v2M5 6h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM3 10h18M9 6v4M15 6v4"/></svg>
+          </span>
+          <span class="flex-1">
+            <b class="block text-[20px] font-extrabold tracking-tight">Müşteri Girişi</b>
+            <span class="mt-1 block text-[13.5px] leading-relaxed text-marka-100/80">Seferleri ve boş koltukları görüntüleyin. Şifre gerekmez.</span>
+          </span>
+          <span class="inline-flex items-center gap-2 text-[14px] font-bold">
+            Bilet ara
+            <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+        </a>
+
+        <a href="/giris"
+          class="group flex flex-col gap-3 rounded-2xl border border-white/20 bg-white/10 p-6 text-left backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-white/40 hover:bg-white/16 hover:shadow-2xl hover:shadow-black/30">
+          <span class="inline-flex h-13 w-13 items-center justify-center rounded-2xl border border-white/25 bg-white/15">
+            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>
+          </span>
+          <span class="flex-1">
+            <b class="block text-[20px] font-extrabold tracking-tight">Sorumlu Girişi</b>
+            <span class="mt-1 block text-[13.5px] leading-relaxed text-marka-100/80">Personel ve acenteler için bilet satış paneli.</span>
+          </span>
+          <span class="inline-flex items-center gap-2 text-[14px] font-bold">
+            Giriş yap
+            <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="bel flex justify-center pb-7" style="animation-delay:.34s">
+      <a href="#bilet-arama" class="flex flex-col items-center gap-1.5 text-[12px] font-bold tracking-[.08em] text-altin-200/70 transition-colors hover:text-white">
+        BİLET ARA
+        <svg class="h-5 w-5 animate-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+      </a>
+    </div>
   </div>
 </header>
 
-<section class="kahraman">
-  <div class="sar">
-    <h1>Seferlerimizi ve boş koltukları anlık görün.</h1>
-    <p>Hangi koltuk boş, hangisi dolu — otobüsün koltuk planını buradan inceleyebilirsiniz.
-       Yerinizi ayırtmak için bizi aramanız yeterli.</p>
-    <div class="rozetler">
-      <span>🚌 Güncel sefer saatleri</span>
-      <span>💺 Anlık koltuk durumu</span>
-      <span>⚖️ Bay–bayan yerleşimi</span>
-      <span>📞 Telefonla rezervasyon</span>
+<!-- ══════════════ SAYI ŞERİDİ ══════════════ -->
+<section class="relative z-10 bg-marka-900 py-7 text-white">
+  <div class="mx-auto grid max-w-6xl grid-cols-2 gap-5 px-5 text-center sm:grid-cols-4">
+    <div><b id="sySefer" class="block bg-gradient-to-r from-white to-altin-200 bg-clip-text text-[clamp(22px,3.4vw,32px)] font-extrabold tracking-tight text-transparent">—</b><small class="text-[12px] font-semibold uppercase tracking-wider text-altin-200/70">Yaklaşan sefer</small></div>
+    <div><b id="syGuzergah" class="block bg-gradient-to-r from-white to-altin-200 bg-clip-text text-[clamp(22px,3.4vw,32px)] font-extrabold tracking-tight text-transparent">—</b><small class="text-[12px] font-semibold uppercase tracking-wider text-altin-200/70">Güzergah</small></div>
+    <div><b id="syKoltuk" class="block bg-gradient-to-r from-white to-altin-200 bg-clip-text text-[clamp(22px,3.4vw,32px)] font-extrabold tracking-tight text-transparent">—</b><small class="text-[12px] font-semibold uppercase tracking-wider text-altin-200/70">Boş koltuk</small></div>
+    <div><b class="block bg-gradient-to-r from-white to-altin-200 bg-clip-text text-[clamp(22px,3.4vw,32px)] font-extrabold tracking-tight text-transparent">7/24</b><small class="text-[12px] font-semibold uppercase tracking-wider text-altin-200/70">Telefon desteği</small></div>
+  </div>
+</section>
+
+<!-- ══════════════ BİLET ARAMA — YÜZEN KART ══════════════ -->
+<div id="bilet-arama" class="mx-auto -mt-9 max-w-6xl px-5">
+  <div class="relative z-20 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-xl shadow-slate-900/10 transition-all duration-300 hover:shadow-2xl hover:shadow-slate-900/15 sm:p-7">
+
+    <div class="mb-5 flex items-center gap-3">
+      <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-marka-500 to-marka-700 text-white shadow-lg shadow-marka-700/30">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 6 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-6zM13 7v10"/></svg>
+      </span>
+      <div>
+        <h2 class="text-[19px] font-extrabold tracking-tight">Bilet ara</h2>
+        <p class="text-[13.5px] text-slate-500">Güzergah ve tarih seçin, boş koltukları görün.</p>
+      </div>
+    </div>
+
+    <div class="grid items-end gap-3.5 lg:grid-cols-[1.4fr_1fr_auto]">
+      <div>
+        <label for="guzergah" class="mb-2 block text-[11.5px] font-extrabold uppercase tracking-wider text-slate-500">Nereden — Nereye</label>
+        <div class="group relative">
+          <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition-colors duration-200 group-focus-within:text-marka-500">
+            <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+          </span>
+          <select id="guzergah"
+            class="w-full appearance-none rounded-xl border border-slate-300 bg-white bg-[url('data:image/svg+xml;charset=utf8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%2364748b%22%20stroke-width=%222.5%22%20stroke-linecap=%22round%22%3E%3Cpath%20d=%22M6%209l6%206%206-6%22/%3E%3C/svg%3E')] bg-[length:17px] bg-[right_14px_center] bg-no-repeat py-3.5 pl-12 pr-11 text-[15px] transition-all duration-200 focus:border-marka-400 focus:outline-none focus:ring-2 focus:ring-marka-400 focus:ring-offset-1">
+            <option value="">Tüm güzergahlar</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label for="tarih" class="mb-2 block text-[11.5px] font-extrabold uppercase tracking-wider text-slate-500">Gidiş tarihi</label>
+        <div class="group relative">
+          <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition-colors duration-200 group-focus-within:text-marka-500">
+            <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </span>
+          <input type="date" id="tarih"
+            class="w-full rounded-xl border border-slate-300 bg-white py-3.5 pl-12 pr-3 text-[15px] transition-all duration-200 focus:border-marka-400 focus:outline-none focus:ring-2 focus:ring-marka-400 focus:ring-offset-1">
+        </div>
+      </div>
+
+      <button id="araBtn"
+        class="inline-flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-br from-marka-500 to-marka-700 px-7 py-3.5 text-[15px] font-bold text-white shadow-lg shadow-marka-700/30 transition-all duration-300 hover:shadow-xl hover:shadow-marka-700/40 focus:outline-none focus:ring-2 focus:ring-marka-400 focus:ring-offset-2 active:translate-y-px">
+        <svg class="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        Sefer ara
+      </button>
+    </div>
+
+    <div id="hizliTarih" class="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4"></div>
+  </div>
+</div>
+
+<!-- ══════════════ SONUÇLAR ══════════════ -->
+<main class="mx-auto max-w-6xl px-5 pb-16 pt-11">
+  <div class="mb-5 flex flex-wrap items-baseline gap-3">
+    <h2 class="text-[26px] font-extrabold tracking-tight">Yaklaşan seferler</h2>
+    <span id="sayac" class="rounded-full border border-slate-200 bg-white px-3 py-1 text-[13px] font-bold text-slate-500">yükleniyor…</span>
+  </div>
+  <div id="liste">
+    <div class="py-14 text-center text-slate-500">
+      <span class="mr-2 inline-block h-5 w-5 animate-spin rounded-full border-[2.5px] border-slate-200 border-t-marka-500 align-[-4px]"></span>
+      Seferler yükleniyor…
+    </div>
+  </div>
+</main>
+
+<!-- ══════════════ ÖZELLİKLER ══════════════ -->
+<section class="border-t border-slate-200 bg-white py-14">
+  <div class="mx-auto max-w-6xl px-5">
+    <h2 class="text-center text-[26px] font-extrabold tracking-tight">Neden bizimle yolculuk?</h2>
+    <p class="mx-auto mb-9 mt-2.5 max-w-xl text-center text-slate-500">Koltuğunuzu seçerken de yolda da rahat edin diye çalışıyoruz.</p>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="rounded-2xl border border-slate-200 bg-fildisi p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+        <span class="mb-3.5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-marka-700 to-marka-500 text-white"><svg class="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4v16M16 4v16M3 12h18"/></svg></span>
+        <b class="mb-1.5 block text-[16px] font-bold">Koltuğunuzu siz seçin</b>
+        <p class="text-[13.5px] leading-relaxed text-slate-500">Pencere mi koridor mu, önde mi arkada mı — planı görüp karar verirsiniz.</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-fildisi p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+        <span class="mb-3.5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-marka-700 to-marka-500 text-white"><svg class="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.5-3.4 8.4-8 9-4.6-.6-8-4.5-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <b class="mb-1.5 block text-[16px] font-bold">Bay–bayan düzenine dikkat</b>
+        <p class="text-[13.5px] leading-relaxed text-slate-500">Yan yana koltuklarda cinsiyet kuralı sistem tarafından korunur.</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-fildisi p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+        <span class="mb-3.5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-marka-700 to-marka-500 text-white"><svg class="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 .01 0M22 21v-2a4 4 0 0 0-3-3.87"/></svg></span>
+        <b class="mb-1.5 block text-[16px] font-bold">Kafile ve grup yolculuğu</b>
+        <p class="text-[13.5px] leading-relaxed text-slate-500">Aile, okul ya da tur grubunuz için topluca yer ayırtabilirsiniz.</p>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-fildisi p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+        <span class="mb-3.5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-marka-700 to-marka-500 text-white"><svg class="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <b class="mb-1.5 block text-[16px] font-bold">Anlık doluluk</b>
+        <p class="text-[13.5px] leading-relaxed text-slate-500">Buradaki koltuk durumu gişeyle aynı anda güncellenir, eski bilgi görmezsiniz.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<div class="sar">
-  <div class="arama">
-    <div class="arama-grid">
-      <div class="alan">
-        <label for="guzergah">Güzergah</label>
-        <select class="girdi" id="guzergah"><option value="">Tüm güzergahlar</option></select>
-      </div>
-      <div class="alan">
-        <label for="tarih">Gidiş tarihi</label>
-        <input class="girdi" type="date" id="tarih">
-      </div>
-      <button class="ara-btn" id="araBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        Sefer ara
-      </button>
-    </div>
-    <div class="hizli" id="hizliTarih"></div>
-  </div>
-</div>
-
-<main class="sar bolum">
-  <div class="bolum-bas">
-    <h2>Seferler</h2>
-    <span class="sayi-rozet" id="sayac">yükleniyor…</span>
-  </div>
-  <div id="liste"><div class="yukleniyor"><span class="donen"></span> Seferler yükleniyor…</div></div>
-</main>
-
-<footer class="alt">
-  <div class="sar">
-    <div class="alt-grid">
+<!-- ══════════════ ALT BİLGİ ══════════════ -->
+<footer class="bg-marka-900 py-12 text-marka-100/70">
+  <div class="mx-auto max-w-6xl px-5">
+    <div class="mb-8 grid gap-8 md:grid-cols-[1.5fr_1fr_1fr]">
       <div>
-        <h4 id="altFirma">Serhend Turizm</h4>
-        <p id="altSlogan" style="margin-bottom:14px"></p>
-        <p style="font-size:13px;color:#7f9ac4">Bu sayfa yalnızca bilgilendirme amaçlıdır.
-           Sefer saatleri ve koltuk durumu anlık olarak güncellenir.</p>
+        <div class="mb-4 flex items-center gap-3">
+          <img id="altLogo" src="/icons/amblem-serhendi.png" alt="" class="h-11 w-11 rounded-xl">
+          <b id="altFirma" class="text-[17px] text-white">SERHENDİ TURİZM</b>
+        </div>
+        <p id="altSlogan" class="mb-2 text-[14px]"></p>
+        <p class="text-[13px] text-marka-100/45">Bu sayfa bilgilendirme amaçlıdır. Sefer saatleri ve koltuk durumu anlık güncellenir.</p>
       </div>
       <div>
-        <h4>İletişim</h4>
-        <div id="iletisimKutu"></div>
+        <h4 class="mb-3.5 text-[14px] font-bold uppercase tracking-wider text-white">İletişim</h4>
+        <div id="iletisimKutu" class="space-y-2.5 text-[14px]"></div>
       </div>
       <div>
-        <h4>Bağlantılar</h4>
-        <ul>
-          <li><a href="/">Sefer listesi</a></li>
-          <li><a href="/giris">Personel girişi</a></li>
+        <h4 class="mb-3.5 text-[14px] font-bold uppercase tracking-wider text-white">Bağlantılar</h4>
+        <ul class="space-y-2 text-[14px]">
+          <li><a href="#bilet-arama" class="transition-colors hover:text-white">Bilet ara</a></li>
+          <li><a href="/giris" class="transition-colors hover:text-white">Sorumlu girişi</a></li>
         </ul>
       </div>
     </div>
-    <div class="alt-son">
-      <span>© <span id="yil"></span> <span id="altFirma2">Serhend Turizm</span> — Tüm hakları saklıdır.</span>
-      <span>Bilet satışı yalnızca gişe ve telefon üzerindendir.</span>
+    <div class="flex flex-wrap justify-between gap-3 border-t border-white/10 pt-6 text-[13px]">
+      <span>© <span id="yil"></span> <span id="altFirma2">Serhendi Turizm</span> — Tüm hakları saklıdır.</span>
+      <span>Bilet satışı gişe ve telefon üzerindendir.</span>
     </div>
   </div>
 </footer>
@@ -335,7 +259,6 @@ select.girdi{appearance:none;padding-right:38px;
 <script>
 'use strict';
 
-/* ----------------------------- Yardımcılar ----------------------------- */
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const TL = (n) => (Number(n) || 0).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' ₺';
@@ -355,33 +278,55 @@ function sure(dk) {
   const s = Math.floor(dk / 60), k = dk % 60;
   return s ? (k ? `${s} sa ${k} dk` : `${s} saat`) : `${k} dk`;
 }
-const ikon = {
-  ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
-  kapi: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M12 3v18"/></svg>',
-  bos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>',
-  direksiyon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 9V3M9.5 14L4.5 18M14.5 14l5 4"/></svg>',
-  tel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.4 1.8.6 2.8.8A2 2 0 0 1 22 16.9z"/></svg>',
-  wa: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.1-.7.2-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5 0-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3z"/><path d="M20.5 3.5A11 11 0 0 0 3.2 17L2 22l5.2-1.2A11 11 0 1 0 20.5 3.5zm-8.4 17a9 9 0 0 1-4.6-1.3l-.3-.2-3.1.7.7-3-.2-.3a9 9 0 1 1 7.5 4.1z"/></svg>',
-  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>',
-  web: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>'
+
+/* Lucide çizgi ikonları (satır içi) */
+const ik = {
+  ok:    '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  saat:  '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  koltuk:'<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19v2M18 19v2M5 11V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5M4 19h16a1 1 0 0 0 1-1v-5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v5a1 1 0 0 0 1 1z"/></svg>',
+  kapi:  '<svg class="h-[15px] w-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M12 3v18"/></svg>',
+  bos:   '<svg class="mx-auto mb-3 h-12 w-12 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>',
+  direk: '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 9V3M9.5 14L4.5 18M14.5 14l5 4"/></svg>',
+  tel:   '<svg class="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.4 1.8.6 2.8.8A2 2 0 0 1 22 16.9z"/></svg>',
+  telK:  '<svg class="h-4 w-4 flex-shrink-0 text-teal-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.4 1.8.6 2.8.8A2 2 0 0 1 22 16.9z"/></svg>',
+  wa:    '<svg class="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3.5A11 11 0 0 0 3.2 17L2 22l5.2-1.2A11 11 0 1 0 20.5 3.5zm-8.4 17a9 9 0 0 1-4.6-1.3l-.3-.2-3.1.7.7-3-.2-.3a9 9 0 1 1 7.5 4.1z"/><path d="M17.5 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.1-.7.2-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5 0-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3z"/></svg>',
+  pin:   '<svg class="h-4 w-4 flex-shrink-0 text-teal-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>',
+  web:   '<svg class="h-4 w-4 flex-shrink-0 text-teal-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/></svg>'
 };
 
 let FIRMA = {};
 
-/* ----------------------------- Firma bilgisi ----------------------------- */
-async function firmaYukle() {
-  try {
-    const d = await fetch('/api/public/settings').then((r) => r.json());
-    FIRMA = d.company || {};
-  } catch { FIRMA = {}; }
+function sayac(el, hedef) {
+  if (!el) return;
+  const sr = 900, bas = performance.now();
+  const adim = (t) => {
+    const o = Math.min(1, (t - bas) / sr);
+    el.textContent = Math.round(hedef * (1 - Math.pow(1 - o, 3))).toLocaleString('tr-TR');
+    if (o < 1) requestAnimationFrame(adim);
+  };
+  requestAnimationFrame(adim);
+}
 
-  const ad = FIRMA.name || 'SERHEND TURİZM';
+/** Doluluk oranına göre canlı durum rozeti */
+function dolulukRozeti(bos, kapasite) {
+  const oran = kapasite ? bos / kapasite : 0;
+  if (bos <= 0)     return { sinif: 'bg-rose-50 text-rose-700 ring-rose-200',    yazi: 'Doldu',        nokta: 'bg-rose-500' };
+  if (oran <= 0.15) return { sinif: 'bg-orange-50 text-orange-700 ring-orange-200', yazi: 'Son koltuklar', nokta: 'bg-orange-500' };
+  if (oran <= 0.4)  return { sinif: 'bg-amber-50 text-amber-700 ring-amber-200',  yazi: 'Doluyor',      nokta: 'bg-amber-500' };
+  return              { sinif: 'bg-emerald-50 text-emerald-700 ring-emerald-200', yazi: 'Müsait',       nokta: 'bg-emerald-500' };
+}
+
+async function firmaYukle() {
+  try { FIRMA = (await fetch('/api/public/settings').then((r) => r.json())).company || {}; }
+  catch { FIRMA = {}; }
+
+  const ad = FIRMA.name || 'SERHENDİ TURİZM';
   $('#firmaAdi').textContent = ad;
   $('#altFirma').textContent = ad;
   $('#altFirma2').textContent = ad;
   document.title = ad + ' — Sefer ve Koltuk Durumu';
   if (FIRMA.slogan) { $('#firmaSlogan').textContent = FIRMA.slogan; $('#altSlogan').textContent = FIRMA.slogan; }
-  if (FIRMA.logo) $('#logo').src = FIRMA.logo;
+  if (FIRMA.logo) { $('#logo').src = FIRMA.logo; $('#altLogo').src = FIRMA.logo; }
 
   if (FIRMA.phone) {
     const t = $('#telUst');
@@ -390,79 +335,82 @@ async function firmaYukle() {
     t.style.display = '';
   }
 
-  const kutu = $('#iletisimKutu');
-  const satir = (ik, metin, baglanti) =>
-    `<div class="iletisim">${ik}<div>${baglanti ? `<a href="${baglanti}">${esc(metin)}</a>` : esc(metin)}</div></div>`;
+  const satir = (ikon, metin, baglanti) =>
+    `<div class="flex items-start gap-2.5">${ikon}<div>${baglanti ? `<a class="transition-colors hover:text-white" href="${baglanti}">${esc(metin)}</a>` : esc(metin)}</div></div>`;
   let h = '';
-  if (FIRMA.phone) h += satir(ikon.tel, FIRMA.phone, 'tel:' + FIRMA.phone.replace(/[^0-9+]/g, ''));
-  if (FIRMA.address) h += satir(ikon.pin, FIRMA.address);
-  if (FIRMA.website) h += satir(ikon.web, FIRMA.website, (/^https?:/.test(FIRMA.website) ? '' : 'https://') + FIRMA.website);
-  kutu.innerHTML = h || '<p style="font-size:13px">İletişim bilgisi henüz girilmemiş.</p>';
+  if (FIRMA.phone) h += satir(ik.telK, FIRMA.phone, 'tel:' + FIRMA.phone.replace(/[^0-9+]/g, ''));
+  if (FIRMA.address) h += satir(ik.pin, FIRMA.address);
+  if (FIRMA.website) h += satir(ik.web, FIRMA.website, (/^https?:/.test(FIRMA.website) ? '' : 'https://') + FIRMA.website);
+  $('#iletisimKutu').innerHTML = h || '<p class="text-[13px]">İletişim bilgisi henüz girilmemiş.</p>';
 }
 
-/* ----------------------------- Güzergahlar ----------------------------- */
 async function guzergahlariYukle() {
   try {
     const r = await fetch('/api/public/routes').then((x) => x.json());
     const s = $('#guzergah');
     r.forEach((g) => {
       const o = document.createElement('option');
-      o.value = g.id;
-      o.textContent = `${g.origin} → ${g.destination}`;
+      o.value = g.id; o.textContent = `${g.origin} → ${g.destination}`;
       s.appendChild(o);
     });
-  } catch { /* önemsiz */ }
+    sayac($('#syGuzergah'), r.length);
+  } catch { $('#syGuzergah').textContent = '0'; }
 }
 
-/* ----------------------------- Hızlı tarih düğmeleri ----------------------------- */
 function hizliTarihler() {
   const b = bugun();
-  const secenekler = [
-    { e: 'Tümü', d: '' },
-    { e: 'Bugün', d: b },
-    { e: 'Yarın', d: gunEkle(b, 1) },
+  const sec = [
+    { e: 'Tümü', d: '' }, { e: 'Bugün', d: b }, { e: 'Yarın', d: gunEkle(b, 1) },
     { e: trTarih(gunEkle(b, 2)).split(',')[0], d: gunEkle(b, 2) },
     { e: trTarih(gunEkle(b, 3)).split(',')[0], d: gunEkle(b, 3) }
   ];
-  $('#hizliTarih').innerHTML = secenekler
-    .map((s) => `<button data-t="${s.d}">${esc(s.e)}</button>`).join('');
+  $('#hizliTarih').innerHTML = sec.map((s) =>
+    `<button data-t="${s.d}" class="rounded-full border border-slate-200 bg-fildisi px-4 py-2 text-[13px] font-bold text-slate-500 transition-all duration-300 hover:border-marka-700 hover:bg-marka-700 hover:text-white">${esc(s.e)}</button>`
+  ).join('');
   $('#hizliTarih').querySelectorAll('button').forEach((btn) => {
-    btn.onclick = () => {
-      $('#tarih').value = btn.dataset.t;
-      seferleriYukle();
-    };
+    btn.onclick = () => { $('#tarih').value = btn.dataset.t; seferleriYukle(); };
   });
 }
 
-/* ----------------------------- Sefer listesi ----------------------------- */
-async function seferleriYukle() {
+async function seferleriYukle(ilk) {
   const kutu = $('#liste');
-  kutu.innerHTML = '<div class="yukleniyor"><span class="donen"></span> Seferler yükleniyor…</div>';
+  kutu.innerHTML = `<div class="py-14 text-center text-slate-500">
+    <span class="mr-2 inline-block h-5 w-5 animate-spin rounded-full border-[2.5px] border-slate-200 border-t-marka-500 align-[-4px]"></span>
+    Seferler yükleniyor…</div>`;
 
   const p = new URLSearchParams();
-  const t = $('#tarih').value;
-  const g = $('#guzergah').value;
+  const t = $('#tarih').value, g = $('#guzergah').value;
   if (t) p.set('date', t);
   if (g) p.set('route_id', g);
 
-  const secili = $('#tarih').value || '';
-  $('#hizliTarih').querySelectorAll('button')
-    .forEach((b) => b.classList.toggle('secili', b.dataset.t === secili));
+  $('#hizliTarih').querySelectorAll('button').forEach((b) => {
+    const secili = b.dataset.t === (t || '');
+    b.classList.toggle('bg-marka-700', secili);
+    b.classList.toggle('text-white', secili);
+    b.classList.toggle('border-marka-700', secili);
+    b.classList.toggle('bg-fildisi', !secili);
+    b.classList.toggle('text-slate-500', !secili);
+  });
 
   let liste = [];
-  try {
-    liste = await fetch('/api/public/trips?' + p.toString()).then((r) => r.json());
-  } catch {
-    kutu.innerHTML = `<div class="bos-kutu">${ikon.bos}<b>Bağlantı kurulamadı</b>
+  try { liste = await fetch('/api/public/trips?' + p.toString()).then((r) => r.json()); }
+  catch {
+    kutu.innerHTML = `<div class="rounded-2xl border border-dashed border-slate-300 bg-white p-14 text-center text-slate-500">
+      ${ik.bos}<b class="mb-1.5 block text-[18px] text-slate-900">Bağlantı kurulamadı</b>
       <div>İnternet bağlantınızı kontrol edip sayfayı yenileyin.</div></div>`;
     return;
   }
 
+  if (ilk) {
+    sayac($('#sySefer'), liste.length);
+    sayac($('#syKoltuk'), liste.reduce((s, x) => s + Math.max(0, x.empty), 0));
+  }
   $('#sayac').textContent = liste.length ? `${liste.length} sefer` : 'sefer yok';
 
   if (!liste.length) {
-    kutu.innerHTML = `<div class="bos-kutu">${ikon.bos}<b>Bu kriterlere uygun sefer bulunamadı</b>
-      <div>Farklı bir tarih veya güzergah seçmeyi deneyin.</div></div>`;
+    kutu.innerHTML = `<div class="rounded-2xl border border-dashed border-slate-300 bg-white p-14 text-center text-slate-500">
+      ${ik.bos}<b class="mb-1.5 block text-[18px] text-slate-900">Bu tarihlerde sefer görünmüyor</b>
+      <div>Farklı bir tarih veya güzergah seçmeyi deneyin${FIRMA.phone ? `, ya da bize ulaşın: <b class="text-slate-700">${esc(FIRMA.phone)}</b>` : ''}.</div></div>`;
     return;
   }
 
@@ -470,83 +418,131 @@ async function seferleriYukle() {
   liste.forEach((s) => { (gunlere[s.depart_date] = gunlere[s.depart_date] || []).push(s); });
 
   kutu.innerHTML = Object.keys(gunlere).sort().map((gun) => `
-    <div class="gun-bas"><h3>${esc(trTarih(gun))}</h3><span class="sayi-rozet">${gunlere[gun].length} sefer</span><div class="cizgi"></div></div>
-    <div class="kartlar">
+    <div class="mb-3.5 mt-7 flex items-center gap-3 first:mt-0">
+      <h3 class="text-[16px] font-extrabold text-marka-700">${esc(trTarih(gun))}</h3>
+      <span class="rounded-full border border-slate-200 bg-white px-3 py-1 text-[13px] font-bold text-slate-500">${gunlere[gun].length} sefer</span>
+      <div class="h-px flex-1 bg-slate-200"></div>
+    </div>
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       ${gunlere[gun].map((s) => {
         const oran = Math.round(((s.capacity - s.empty) / s.capacity) * 100);
+        const rz = dolulukRozeti(s.empty, s.capacity);
         const doluMu = s.empty <= 0;
-        return `<article class="sefer" data-id="${s.id}">
-          <div class="sefer-ust">
-            <div class="saat">${esc(s.depart_time)}<small>Kalkış</small></div>
-            <div class="fiyat"><b>${TL(s.price)}</b><small>kişi başı</small></div>
+        return `<article data-id="${s.id}"
+          class="group relative flex cursor-pointer flex-col gap-3.5 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-transparent hover:shadow-md">
+          <span class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-altin-400 to-marka-500 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-[29px] font-extrabold leading-none tracking-[-.035em]">${esc(s.depart_time)}</div>
+              <div class="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                ${ik.saat} Kalkış
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-[22px] font-extrabold text-marka-700">${TL(s.price)}</div>
+              <div class="text-[11.5px] font-semibold text-slate-400">kişi başı</div>
+            </div>
           </div>
-          <div class="guzergah">
+
+          <div class="flex flex-wrap items-center gap-2.5 text-[16.5px] font-bold">
             <span>${esc(s.origin)}</span>
-            <span class="ok">${ikon.ok}</span>
+            <span class="text-marka-500">${ik.ok}</span>
             <span>${esc(s.destination)}</span>
           </div>
-          ${s.duration_min ? `<div style="font-size:12.5px;color:var(--cok-soluk);margin-top:-8px">Tahmini süre: ${sure(s.duration_min)}</div>` : ''}
-          <div class="sefer-alt">
-            <div class="doluluk">
-              <div class="cubuk"><i style="width:${oran}%"></i></div>
-              <span>${doluMu ? 'Koltuk kalmadı' : `<b>${s.empty}</b> koltuk boş`} · ${s.capacity} kişilik</span>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-bold ring-1 ${rz.sinif}">
+              <span class="h-1.5 w-1.5 rounded-full ${rz.nokta}"></span>${rz.yazi}
+            </span>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-fildisi px-2.5 py-1 text-[12px] font-semibold text-slate-500 ring-1 ring-slate-200">
+              ${ik.koltuk} ${s.capacity} kişilik
+            </span>
+            ${s.duration_min ? `<span class="inline-flex items-center gap-1.5 rounded-full bg-fildisi px-2.5 py-1 text-[12px] font-semibold text-slate-500 ring-1 ring-slate-200">${ik.saat} ${sure(s.duration_min)}</span>` : ''}
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-dashed border-slate-200 pt-3.5">
+            <div class="min-w-0 flex-1">
+              <div class="mb-1.5 h-[7px] overflow-hidden rounded-full bg-slate-200">
+                <i class="block h-full rounded-full bg-gradient-to-r from-altin-400 to-marka-500 transition-[width] duration-500" style="width:${oran}%"></i>
+              </div>
+              <span class="text-[12.5px] font-semibold text-slate-500">
+                ${doluMu ? 'Koltuk kalmadı' : `<b class="text-slate-900">${s.empty}</b> koltuk boş`}
+              </span>
             </div>
-            <span class="bak ${doluMu ? 'doldu' : ''}">${doluMu ? 'DOLU' : 'Koltukları gör'}</span>
+            <span class="whitespace-nowrap rounded-xl border px-3.5 py-2 text-[13px] font-bold transition-all duration-300
+              ${doluMu ? 'border-transparent bg-rose-50 text-rose-700'
+                       : 'border-slate-200 bg-fildisi text-marka-700 group-hover:border-marka-700 group-hover:bg-marka-700 group-hover:text-white'}">
+              ${doluMu ? 'DOLU' : 'Koltukları gör'}
+            </span>
           </div>
         </article>`;
       }).join('')}
     </div>`).join('');
 
-  kutu.querySelectorAll('.sefer').forEach((el) => {
+  kutu.querySelectorAll('article[data-id]').forEach((el) => {
     el.onclick = () => koltuklariAc(+el.dataset.id);
   });
 }
 
-/* ----------------------------- Koltuk penceresi ----------------------------- */
+/* ══════════ KOLTUK PENCERESİ ══════════ */
 function pencereKapat() { $('#pencereKok').innerHTML = ''; document.body.style.overflow = ''; }
+window.pencereKapat = pencereKapat;
 
 async function koltuklariAc(id) {
   const kok = $('#pencereKok');
   document.body.style.overflow = 'hidden';
-  kok.innerHTML = `<div class="perde"><div class="pencere"><div class="yukleniyor">
-    <span class="donen"></span> Koltuk planı yükleniyor…</div></div></div>`;
+  kok.innerHTML = `<div class="fixed inset-0 z-50 flex items-center justify-center bg-marka-900/70 p-5 backdrop-blur-sm">
+    <div class="w-full max-w-xl rounded-2xl bg-white p-14 text-center text-slate-500 shadow-2xl">
+      <span class="mr-2 inline-block h-5 w-5 animate-spin rounded-full border-[2.5px] border-slate-200 border-t-marka-500 align-[-4px]"></span>
+      Koltuk planı yükleniyor…</div></div>`;
 
   let d;
   try {
     d = await fetch('/api/public/trips/' + id + '/seatmap').then((r) => r.json());
     if (d.error) throw new Error(d.error);
   } catch {
-    kok.innerHTML = `<div class="perde"><div class="pencere"><div class="pencere-govde">
-      <div class="bos-kutu">${ikon.bos}<b>Koltuk planı alınamadı</b>
-      <div>Sefer kaldırılmış olabilir. Lütfen sayfayı yenileyin.</div></div>
-      <div style="text-align:center;margin-top:14px"><button class="cagri-btn btn-tel" onclick="pencereKapat()">Kapat</button></div>
-      </div></div></div>`;
+    kok.innerHTML = `<div class="fixed inset-0 z-50 flex items-center justify-center bg-marka-900/70 p-5 backdrop-blur-sm">
+      <div class="w-full max-w-xl rounded-2xl bg-white p-10 text-center shadow-2xl">
+        ${ik.bos}<b class="mb-1.5 block text-[18px]">Koltuk planı alınamadı</b>
+        <p class="mb-5 text-slate-500">Sefer kaldırılmış olabilir. Lütfen sayfayı yenileyin.</p>
+        <button onclick="pencereKapat()" class="rounded-xl bg-slate-100 px-6 py-3 font-bold text-slate-700 transition-all duration-300 hover:bg-slate-200">Kapat</button>
+      </div></div>`;
     return;
   }
 
   const t = d.trip;
-  const koltukHarita = new Map(d.seats.map((s) => [s.seat_no, s]));
+  const harita = new Map(d.seats.map((s) => [s.seat_no, s]));
+  const rz = dolulukRozeti(d.stats.bos, t.capacity);
 
   const koltukHtml = (n) => {
-    const s = koltukHarita.get(n);
+    const s = harita.get(n);
     if (!s) return '<div></div>';
-    const sinif = !s.occupied ? 'bos' : (s.gender === 'K' ? 'bayan' : 'bay');
+    const stil = !s.occupied
+      ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
+      : (s.gender === 'K' ? 'bg-pink-50 border-pink-300 text-pink-600' : 'bg-blue-50 border-blue-300 text-blue-600');
     const baslik = !s.occupied
       ? (s.requires_gender ? `${n} nolu koltuk boş — yanı ${s.requires_gender === 'K' ? 'bayan' : 'bay'} yolcu` : `${n} nolu koltuk boş`)
       : `${n} nolu koltuk dolu (${s.gender === 'K' ? 'bayan' : 'bay'})`;
-    return `<div class="koltuk ${sinif}" title="${esc(baslik)}">${n}</div>`;
+    return `<div title="${esc(baslik)}"
+      class="grid aspect-[1/.92] min-h-[42px] place-items-center rounded-[10px] border-[1.5px] text-[14px] font-extrabold transition-transform duration-200 hover:scale-105 ${stil}">${n}</div>`;
   };
 
   const planHtml = d.layout.map((sira) => {
     if (sira.type === 'door') {
-      return `<div class="sira">${koltukHtml(sira.seats[0])}${koltukHtml(sira.seats[1])}
-        <div class="koridor">▮</div>
-        <div class="kapi">${ikon.kapi}<span>ORTA KAPI</span></div></div>`;
+      return `<div class="mb-[7px] grid grid-cols-[1fr_1fr_22px_2fr] items-center gap-[7px]">
+        ${koltukHtml(sira.seats[0])}${koltukHtml(sira.seats[1])}
+        <div class="select-none text-center text-[11px] text-slate-300">▮</div>
+        <div class="flex min-h-[42px] items-center justify-center gap-1.5 rounded-[10px] border-[1.5px] border-dashed border-slate-300 bg-[repeating-linear-gradient(45deg,transparent,transparent_6px,rgba(148,163,184,.16)_6px,rgba(148,163,184,.16)_12px)] text-[10.5px] font-extrabold tracking-widest text-slate-400">
+          ${ik.kapi}<span>ORTA KAPI</span></div>
+      </div>`;
     }
     if (sira.type === 'back') {
-      return `<div class="sira arka">${sira.seats.map(koltukHtml).join('')}</div>`;
+      return `<div class="mb-[7px] grid grid-cols-5 items-center gap-[7px]">${sira.seats.map(koltukHtml).join('')}</div>`;
     }
-    return `<div class="sira">${sira.seats.map((n) => n === null ? '<div class="koridor">▮</div>' : koltukHtml(n)).join('')}</div>`;
+    return `<div class="mb-[7px] grid grid-cols-[1fr_1fr_22px_1fr_1fr] items-center gap-[7px]">
+      ${sira.seats.map((n) => n === null ? '<div class="select-none text-center text-[11px] text-slate-300">▮</div>' : koltukHtml(n)).join('')}
+    </div>`;
   }).join('');
 
   const tel = (FIRMA.phone || '').replace(/[^0-9+]/g, '');
@@ -554,41 +550,55 @@ async function koltuklariAc(id) {
     `Merhaba, ${t.depart_date} tarihli ${t.depart_time} ${t.origin} - ${t.destination} seferi için yer ayırtmak istiyorum.`);
   const waNo = tel.replace(/^0/, '90').replace(/^\+/, '');
 
-  kok.innerHTML = `<div class="perde" id="perde">
-    <div class="pencere">
-      <div class="pencere-bas">
+  kok.innerHTML = `<div id="perde" class="fixed inset-0 z-50 flex items-end justify-center bg-marka-900/70 p-0 backdrop-blur-sm sm:items-center sm:p-5">
+    <div class="max-h-[94vh] w-full max-w-xl overflow-auto rounded-t-2xl bg-white shadow-2xl sm:max-h-[92vh] sm:rounded-2xl">
+
+      <div class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-slate-200 bg-white px-6 pb-4 pt-5">
         <div>
-          <h3>${esc(t.origin)} → ${esc(t.destination)}</h3>
-          <p>${esc(trTarih(t.depart_date))} · <b>${esc(t.depart_time)}</b> · ${TL(t.price)}</p>
+          <div class="mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-bold ring-1 ${rz.sinif}">
+            <span class="h-1.5 w-1.5 rounded-full ${rz.nokta}"></span>${rz.yazi}
+          </div>
+          <h3 class="text-[20px] font-extrabold tracking-tight">${esc(t.origin)} → ${esc(t.destination)}</h3>
+          <p class="mt-1 text-[13.5px] text-slate-500">${esc(trTarih(t.depart_date))} · <b class="text-slate-700">${esc(t.depart_time)}</b> · ${TL(t.price)}</p>
         </div>
-        <button class="kapat" id="kapatBtn" aria-label="Kapat">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <button id="kapatBtn" aria-label="Kapat"
+          class="grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl border border-slate-200 bg-fildisi text-slate-500 transition-all duration-300 hover:bg-slate-200">
+          <svg class="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
-      <div class="pencere-govde">
-        <div class="gosterge">
-          <div><span class="ornek bos"></span> Boş</div>
-          <div><span class="ornek bay"></span> Bay dolu</div>
-          <div><span class="ornek bayan"></span> Bayan dolu</div>
+
+      <div class="px-6 pb-6 pt-5">
+        <div class="mb-4 flex flex-wrap justify-center gap-4 rounded-xl bg-fildisi p-3.5">
+          <div class="flex items-center gap-2 text-[12.5px] font-bold text-slate-500"><span class="h-[17px] w-[17px] rounded-[5px] border-[1.5px] border-emerald-500 bg-emerald-50"></span> Boş</div>
+          <div class="flex items-center gap-2 text-[12.5px] font-bold text-slate-500"><span class="h-[17px] w-[17px] rounded-[5px] border-[1.5px] border-blue-300 bg-blue-50"></span> Bay dolu</div>
+          <div class="flex items-center gap-2 text-[12.5px] font-bold text-slate-500"><span class="h-[17px] w-[17px] rounded-[5px] border-[1.5px] border-pink-300 bg-pink-50"></span> Bayan dolu</div>
         </div>
 
-        <div class="otobus">
-          <div class="sofor"><div class="direksiyon">${ikon.direksiyon}</div></div>
+        <div class="mx-auto max-w-[340px] rounded-t-[22px] rounded-b-[15px] border-2 border-slate-300 bg-fildisi px-4 pb-5 pt-4">
+          <div class="mb-3 flex justify-end border-b-2 border-dashed border-slate-300 px-1 pb-3">
+            <div class="grid h-9 w-9 place-items-center rounded-full border-[3px] border-slate-400 text-slate-400">${ik.direk}</div>
+          </div>
           ${planHtml}
         </div>
 
-        <div class="ozet">
-          <div class="y"><b>${d.stats.bos}</b><small>BOŞ KOLTUK</small></div>
-          <div><b>${d.stats.dolu}</b><small>DOLU KOLTUK</small></div>
+        <div class="my-5 grid grid-cols-2 gap-3">
+          <div class="rounded-xl bg-emerald-50 p-3.5 text-center ring-1 ring-emerald-100">
+            <b class="block text-[24px] font-extrabold leading-tight text-emerald-600">${d.stats.bos}</b>
+            <small class="text-[11.5px] font-bold text-emerald-700/70">BOŞ KOLTUK</small>
+          </div>
+          <div class="rounded-xl bg-slate-100 p-3.5 text-center ring-1 ring-slate-200">
+            <b class="block text-[24px] font-extrabold leading-tight text-slate-700">${d.stats.dolu}</b>
+            <small class="text-[11.5px] font-bold text-slate-500">DOLU KOLTUK</small>
+          </div>
         </div>
 
-        <div class="cagri">
-          <p><b style="color:#fff;font-size:15px;display:block;margin-bottom:5px">Yerinizi ayırtmak için bizi arayın</b>
-             Bu sayfadan bilet satışı yapılmaz. Beğendiğiniz koltuğun numarasını söylemeniz yeterli.</p>
-          <div class="cagri-btnlar">
-            ${tel ? `<a class="cagri-btn btn-tel" href="tel:${esc(tel)}">${ikon.tel} ${esc(FIRMA.phone)}</a>` : ''}
-            ${tel ? `<a class="cagri-btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/${esc(waNo)}?text=${waMetin}">${ikon.wa} WhatsApp</a>` : ''}
-            ${!tel ? '<span style="font-size:13.5px">İletişim numarası yönetici tarafından henüz girilmemiş.</span>' : ''}
+        <div class="rounded-2xl bg-gradient-to-br from-marka-700 to-marka-500 p-5 text-center text-white">
+          <b class="mb-1.5 block text-[15.5px]">Yerinizi ayırtmak için bizi arayın</b>
+          <p class="mb-4 text-[13.5px] text-marka-100/75">Bu sayfadan bilet satışı yapılmaz. Beğendiğiniz koltuğun numarasını söylemeniz yeterli.</p>
+          <div class="flex flex-wrap justify-center gap-2.5">
+            ${tel ? `<a href="tel:${esc(tel)}" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-altin-400 to-altin-600 px-5 py-3 text-[14.5px] font-bold transition-all duration-300 hover:brightness-110 active:translate-y-px">${ik.tel} ${esc(FIRMA.phone)}</a>` : ''}
+            ${tel ? `<a target="_blank" rel="noopener" href="https://wa.me/${esc(waNo)}?text=${waMetin}" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-green-500 to-green-700 px-5 py-3 text-[14.5px] font-bold transition-all duration-300 hover:brightness-110 active:translate-y-px">${ik.wa} WhatsApp</a>` : ''}
+            ${!tel ? '<span class="text-[13.5px] text-marka-100/75">İletişim numarası yönetici tarafından henüz girilmemiş.</span>' : ''}
           </div>
         </div>
       </div>
@@ -601,23 +611,21 @@ async function koltuklariAc(id) {
     if (e.key === 'Escape') { pencereKapat(); document.removeEventListener('keydown', esc2); }
   });
 }
-window.pencereKapat = pencereKapat;
 
-/* ----------------------------- Başlat ----------------------------- */
+/* ══════════ Başlat ══════════ */
 $('#yil').textContent = new Date().getFullYear();
 $('#tarih').min = bugun();
-$('#araBtn').onclick = seferleriYukle;
-$('#guzergah').onchange = seferleriYukle;
-$('#tarih').onchange = seferleriYukle;
+$('#araBtn').onclick = () => seferleriYukle();
+$('#guzergah').onchange = () => seferleriYukle();
+$('#tarih').onchange = () => seferleriYukle();
 hizliTarihler();
 
 (async () => {
   await firmaYukle();
   await guzergahlariYukle();
-  await seferleriYukle();
+  await seferleriYukle(true);
 })();
 
-// Sayfa açık kalırsa koltuk durumu bayatlamasın
 setInterval(() => { if (!$('#pencereKok').innerHTML) seferleriYukle(); }, 120000);
 </script>
 </body>

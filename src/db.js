@@ -215,14 +215,14 @@ function seatKind(seatNo, rows, backRow, midDoor, midDoorRow) {
    Logo, ayrı bir dosyaya bağımlı kalmasın diye doğrudan gömülüdür.
    Yönetici Ayarlar ekranından kendi logosunu yükleyerek değiştirebilir.
 ------------------------------------------------------------------ */
-const LOGO_DOSYASI = path.join(__dirname, '..', 'public', 'icons', 'logo-serhend.svg');
-let LOGO_VERISI = '';
-try {
-  LOGO_VERISI = 'data:image/svg+xml;base64,' + fs.readFileSync(LOGO_DOSYASI).toString('base64');
-} catch { /* logo dosyası yoksa logosuz devam */ }
+/* Logo veri olarak gömülmez; dosya yolu tutulur.
+   Böylece her istekte yüzlerce KB taşınmaz, tarayıcı bir kez indirip önbelleğe alır.
+   Yönetici kendi logosunu yüklerse o veri adresi (data:) olarak saklanır. */
+const LOGO_DOSYASI = path.join(__dirname, '..', 'public', 'icons', 'amblem-serhendi.png');
+const LOGO_VERISI = fs.existsSync(LOGO_DOSYASI) ? '/icons/amblem-serhendi.png' : '';
 
 const VARSAYILAN_FIRMA = {
-  name: 'SERHEND TURİZM',
+  name: 'SERHENDİ TURİZM',
   slogan: 'Güvenli ve konforlu yolculuk',
   phone: '',
   address: '',
@@ -243,7 +243,7 @@ function firmaKimligiGuncelle() {
   }
   let mevcut = {};
   try { mevcut = JSON.parse(satir.value) || {}; } catch { mevcut = {}; }
-  const dokunulmamis = !mevcut.name || ['ÖZ SEYAHAT TURİZM', 'FİRMA ADI', 'REZERVASYON'].includes(mevcut.name);
+  const dokunulmamis = !mevcut.name || ['ÖZ SEYAHAT TURİZM', 'FİRMA ADI', 'REZERVASYON', 'SERHEND TURİZM', 'Serhend Turizm'].includes(mevcut.name);
   if (!dokunulmamis) {
     // Firma adı özelleştirilmiş; sadece logosu hiç yoksa varsayılanı koy
     if (!mevcut.logo && LOGO_VERISI) {
@@ -257,50 +257,81 @@ function firmaKimligiGuncelle() {
 }
 
 // ---------- Seed ----------
+/**
+ * Sistem BOŞ başlar.
+ * Sadece tek bir yönetici hesabı oluşturulur; örnek otobüs, güzergah veya
+ * sefer eklenmez. Firma kendi kayıtlarını girer.
+ *
+ * (Eskiden tanıtım amaçlı örnek seferler ekleniyordu. Kullanıcılar bunları
+ *  "sistem kendiliğinden sefer oluşturuyor" diye algıladığı için kaldırıldı.)
+ */
 function seed() {
   const count = db.prepare('SELECT COUNT(*) c FROM users').get().c;
   if (count > 0) return;
 
-  const insUser = db.prepare(
+  db.prepare(
     `INSERT INTO users (username, password_hash, full_name, role, agency_name, phone)
      VALUES (?,?,?,?,?,?)`
-  );
-  insUser.run('admin', bcrypt.hashSync('admin123', 10), 'Sistem Yöneticisi', 'admin', 'Merkez', '0555 000 00 00');
-  insUser.run('acente1', bcrypt.hashSync('acente123', 10), 'Ahmet Yılmaz', 'acente', 'Yılmaz Turizm', '0555 111 11 11');
-  insUser.run('acente2', bcrypt.hashSync('acente123', 10), 'Ayşe Demir', 'acente', 'Demir Seyahat', '0555 222 22 22');
-
-  const insBus = db.prepare(
-    'INSERT INTO buses (plate, name, rows_cnt, back_row, mid_door, mid_door_row, capacity, notes) VALUES (?,?,?,?,?,?,?,?)'
-  );
-  // Orta kapılı (6. sırada) — 10 sıra + arka sıra − kapı = 43 koltuk
-  insBus.run('34 ABC 123', 'Mercedes Travego', 10, 1, 1, 6, capacityOf(10, 1, 1), 'Klima, WiFi, İkram, orta kapı');
-  insBus.run('06 XYZ 456', 'Setra S 517', 11, 1, 1, 6, capacityOf(11, 1, 1), 'Klima, USB priz, orta kapı');
-  insBus.run('35 KFL 789', 'Neoplan Tourliner', 13, 0, 0, 6, capacityOf(13, 0, 0), 'Kafile otobüsü, orta kapısız');
-
-  const insRoute = db.prepare('INSERT INTO routes (origin, destination, duration_min) VALUES (?,?,?)');
-  insRoute.run('İstanbul', 'Ankara', 330);
-  insRoute.run('Ankara', 'İstanbul', 330);
-  insRoute.run('İstanbul', 'İzmir', 420);
-  insRoute.run('İzmir', 'Antalya', 450);
-
-  const today = new Date();
-  const d = (offset) => {
-    const x = new Date(today.getTime() + offset * 86400000);
-    return x.toISOString().slice(0, 10);
-  };
-  const insTrip = db.prepare(
-    'INSERT INTO trips (route_id, bus_id, depart_date, depart_time, price, notes) VALUES (?,?,?,?,?,?)'
-  );
-  insTrip.run(1, 1, d(0), '09:00', 850, '');
-  insTrip.run(1, 2, d(0), '14:30', 850, '');
-  insTrip.run(2, 1, d(1), '10:00', 850, '');
-  insTrip.run(3, 2, d(1), '21:00', 1150, 'Gece seferi');
-  insTrip.run(3, 3, d(2), '08:00', 1150, 'Kafile için ayrıldı');
-  insTrip.run(4, 3, d(3), '07:30', 1400, '');
+  ).run('admin', bcrypt.hashSync('admin123', 10), 'Sistem Yöneticisi', 'admin', 'Merkez', '');
 
   db.prepare('INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)').run(
     'company', JSON.stringify(VARSAYILAN_FIRMA)
   );
+  console.log('  ✓ Sistem boş olarak kuruldu. Yönetici: admin / admin123');
+}
+
+/* ------------------------------------------------------------------
+   Eski kurulumlardaki örnek (demo) kayıtları tanıma
+   Bunlar sistemle birlikte gelen tanıtım verileridir; firmanın kendi
+   kayıtları değildir. Yönetici Ayarlar'dan tek tuşla temizleyebilir.
+------------------------------------------------------------------ */
+const DEMO = {
+  plakalar: ['34 ABC 123', '06 XYZ 456', '35 KFL 789'],
+  guzergahlar: [
+    ['İstanbul', 'Ankara'], ['Ankara', 'İstanbul'],
+    ['İstanbul', 'İzmir'], ['İzmir', 'Antalya']
+  ],
+  kullanicilar: ['acente1', 'acente2']
+};
+
+/** Sistemde kaç örnek kayıt kaldığını sayar (hiçbir şey silmez). */
+function demoSayimi() {
+  const otobusler = db.prepare(
+    `SELECT id, plate, name FROM buses WHERE plate IN (${DEMO.plakalar.map(() => '?').join(',')})`
+  ).all(...DEMO.plakalar);
+
+  const guzergahlar = DEMO.guzergahlar
+    .map(([o, d]) => db.prepare('SELECT id, origin, destination FROM routes WHERE origin=? AND destination=?').get(o, d))
+    .filter(Boolean);
+
+  const kullanicilar = db.prepare(
+    `SELECT id, username, full_name FROM users WHERE username IN (${DEMO.kullanicilar.map(() => '?').join(',')})`
+  ).all(...DEMO.kullanicilar);
+
+  const otobusIds = otobusler.map((b) => b.id);
+  const guzergahIds = guzergahlar.map((r) => r.id);
+  const seferKosul = [];
+  const seferParam = [];
+  if (otobusIds.length) { seferKosul.push(`bus_id IN (${otobusIds.map(() => '?').join(',')})`); seferParam.push(...otobusIds); }
+  if (guzergahIds.length) { seferKosul.push(`route_id IN (${guzergahIds.map(() => '?').join(',')})`); seferParam.push(...guzergahIds); }
+
+  const seferler = seferKosul.length
+    ? db.prepare(`SELECT id FROM trips WHERE ${seferKosul.join(' OR ')}`).all(...seferParam)
+    : [];
+
+  const seferIds = seferler.map((t) => t.id);
+  const bilet = seferIds.length
+    ? db.prepare(`SELECT COUNT(*) c FROM tickets WHERE trip_id IN (${seferIds.map(() => '?').join(',')}) AND status <> 'iptal'`)
+        .get(...seferIds).c
+    : 0;
+
+  return {
+    otobusler, guzergahlar, kullanicilar,
+    seferSayisi: seferler.length,
+    biletSayisi: bilet,
+    toplam: otobusler.length + guzergahlar.length + kullanicilar.length + seferler.length,
+    varMi: (otobusler.length + guzergahlar.length + kullanicilar.length + seferler.length) > 0
+  };
 }
 
 seed();
@@ -346,5 +377,6 @@ function startAutoBackup() {
 module.exports = {
   db, DATA_DIR, BACKUP_DIR,
   capacityOf, seatLayout, seatIndex, seatPartner, seatKind,
+  demoSayimi, DEMO,
   makeBackup, pruneBackups, startAutoBackup
 };

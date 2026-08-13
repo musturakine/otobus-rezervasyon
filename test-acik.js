@@ -24,14 +24,17 @@ async function call(yol, opts = {}, tok) {
 }
 const login = async (u, p) => (await call('/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) })).body.token;
 
+const { hazirla } = require('./test-kurulum');
+
 (async () => {
   console.log('\n═══ HERKESE AÇIK SAYFA & ORTA KAPI TESTLERİ ═══\n');
-  const admin = await login('admin', 'admin123');
+  const kur = await hazirla();
+  const admin = kur.admin;
   if (!admin) { console.log('Yönetici girişi yapılamadı. Sunucu açık mı?'); process.exit(1); }
 
   /* ---------------------------------------------------------------- 1 */
   console.log('1) Orta kapılı koltuk düzeni');
-  const bus = (await call('/buses', {}, admin)).body.find((b) => b.mid_door);
+  const bus = (await call('/buses', {}, admin)).body.find((b) => b.id === kur.otobusler.bus1);
   kontrol(!!bus, 'Orta kapılı otobüs tanımlı', bus ? bus.plate : '');
   if (bus) {
     const beklenen = bus.rows_cnt * 4 + (bus.back_row ? 5 : 0) - 2;
@@ -39,7 +42,7 @@ const login = async (u, p) => (await call('/login', { method: 'POST', body: JSON
     kontrol(bus.mid_door_row === 6, 'Kapı 6. sırada', bus.mid_door_row + '. sıra');
   }
 
-  const trip = (await call('/trips', {}, admin)).body.find((t) => t.plate === (bus && bus.plate));
+  const trip = { id: kur.seferler.kapili };
   const harita = (await call(`/trips/${trip.id}/seatmap`, {}, admin)).body;
   const kapiSira = harita.layout.find((r) => r.type === 'door');
   kontrol(!!kapiSira, 'Koltuk planında kapı sırası var');
@@ -146,6 +149,14 @@ const login = async (u, p) => (await call('/login', { method: 'POST', body: JSON
   kontrol(durumSayfa.status === 200, 'Durum sayfası açılıyor');
   kontrol(/Her şey yolunda/.test(durumMetin), 'Durum sayfası yeşil rapor veriyor');
   kontrol(durumMetin.includes(saglik.surum), 'Durum sayfasında sürüm görünüyor');
+
+  /* ---------------------------------------------------------------- 8 */
+  console.log('\n8) Sistem örnek veri ile gelmiyor');
+  const demo = (await call('/demo', {}, admin)).body;
+  kontrol(demo.varMi === false, 'Kurulumda hiç örnek (demo) kayıt yok');
+  kontrol(demo.toplam === 0, 'Örnek kayıt sayısı sıfır', demo.toplam + '');
+  const temiz = (await call('/demo/temizle', { method: 'POST' }, admin)).body;
+  kontrol(temiz.ok === true && temiz.silinen === 0, 'Temizlenecek örnek kayıt bulunamadı');
 
   console.log(`\n═══ SONUÇ: ${gecti} başarılı, ${kaldi} başarısız ═══\n`);
   process.exit(kaldi ? 1 : 0);

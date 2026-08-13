@@ -12,14 +12,15 @@ async function call(path, opts = {}, token) {
 }
 const login = async (u, p) => (await call('/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) })).body.token;
 
+const { hazirla } = require('./test-kurulum');
+
 (async () => {
-  const admin = await login('admin', 'admin123');
-  const ac1 = await login('acente1', 'acente123');
-  const ac2 = await login('acente2', 'acente123');
+  const kur = await hazirla();               // testler kendi verisini oluşturur
+  const admin = kur.admin, ac1 = kur.acente1, ac2 = kur.acente2;
   ok(!!admin && !!ac1 && !!ac2, 'Giriş: admin ve iki acente token aldı');
   ok(!(await login('admin', 'yanlis')), 'Yanlış şifre reddedildi');
 
-  const T = 3; // boş bir sefer
+  const T = kur.seferler.bos;                // testler için ayrılmış boş sefer
 
   console.log('\n1) Cinsiyet kuralı');
   let r = await call(`/trips/${T}/sell`, { method: 'POST', body: JSON.stringify({

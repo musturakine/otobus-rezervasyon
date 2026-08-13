@@ -24,7 +24,7 @@ async function api(path, opts = {}) {
       ...(opts.headers || {})
     }
   });
-  if (res.status === 401) { localStorage.clear(); location.href = '/giris'; throw new Error('Oturum sonlandı'); }
+  if (res.status === 401) { localStorage.clear(); location.href = '/giris#sorumlu'; throw new Error('Oturum sonlandı'); }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Bir hata oluştu.');
   return data;
@@ -159,6 +159,35 @@ function geriAlBildirimi(mesaj, trashId, sonra) {
     } catch (ex) { toast(ex.message, 'err', 7000); }
   };
   setTimeout(kapat, 9000);
+}
+
+/** Toplu silme için "Geri al" düğmeli bildirim. */
+function topluGeriAlBildirimi(mesaj, trashIds, sonra) {
+  const el = document.createElement('div');
+  el.className = 'toast undo';
+  el.innerHTML = `${svg('trash', 18)}
+    <div style="flex:1">
+      <div>${esc(mesaj)}</div>
+      <div class="toast-sub">Çöp kutusunda 30 gün saklanacak.</div>
+    </div>
+    <button class="toast-btn">${svg('undo', 15)} Geri al</button>`;
+  document.getElementById('toasts').appendChild(el);
+
+  let kapandi = false;
+  const kapat = () => {
+    if (kapandi) return; kapandi = true;
+    el.style.opacity = '0'; el.style.transform = 'translateX(18px)'; el.style.transition = 'all .2s';
+    setTimeout(() => el.remove(), 220);
+  };
+  el.querySelector('.toast-btn').onclick = async () => {
+    try {
+      const r = await api('/trash/toplu-geri-al', { method: 'POST', body: JSON.stringify({ ids: trashIds }) });
+      toast(`${r.geri_alinan} sefer geri alındı.` + (r.hata ? ` ${r.hata} kayıt geri alınamadı.` : ''),
+        r.hata ? 'warn' : 'ok', 6000);
+      kapat(); sonra && sonra(); copSayisiniTazele();
+    } catch (ex) { toast(ex.message, 'err', 7000); }
+  };
+  setTimeout(kapat, 12000);
 }
 
 /**
@@ -627,7 +656,30 @@ async function pageSeferler() {
       </div>
     </div>
 
+    ${isAdmin ? `<div class="toplu-cubuk" id="topluCubuk" hidden>
+      <div class="toplu-bilgi">
+        <b id="topluSayi">0 sefer seçildi</b>
+        <span id="topluBilet"></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="topluVazgec">Seçimi temizle</button>
+      <button class="btn btn-danger btn-sm" id="topluSil">${svg('trash', 15)} Seçilenleri sil</button>
+    </div>` : ''}
+
     <div id="tripList"><div class="loading-box"><span class="spinner"></span></div></div>`;
+
+  /* Seçili sefer kimlikleri (toplu silme için) */
+  const secili = new Map();   // id -> { sold, label }
+
+  const topluCubuguTazele = () => {
+    const cubuk = document.getElementById('topluCubuk');
+    if (!cubuk) return;
+    cubuk.hidden = secili.size === 0;
+    if (!secili.size) return;
+    const bilet = [...secili.values()].reduce((s, x) => s + x.sold, 0);
+    document.getElementById('topluSayi').textContent = `${secili.size} sefer seçildi`;
+    document.getElementById('topluBilet').textContent =
+      bilet ? `· bu seferlerde ${bilet} satılmış bilet var` : '· satılmış bilet yok';
+  };
 
   const load = async () => {
     const box = document.getElementById('tripList');
@@ -657,18 +709,31 @@ async function pageSeferler() {
     const byDate = {};
     trips.forEach((t) => { (byDate[t.depart_date] = byDate[t.depart_date] || []).push(t); });
 
-    box.innerHTML = Object.keys(byDate).sort().map((date) => `
+    box.innerHTML = `
+      ${isAdmin && trips.length > 1 ? `<div class="tip-box" style="margin-bottom:14px">${svg('info', 18)}
+        <div><b>Birden fazla seferi birden silmek için:</b> satırların solundaki kutucukları işaretleyin,
+        sonra aşağıda çıkan <b>Seçilenleri sil</b> düğmesine basın. Tarih başlığındaki kutucuk o günün
+        tamamını seçer. Silinenler çöp kutusuna gider, geri alınabilir.</div>
+        <button class="tip-close" onclick="this.parentElement.remove()">${svg('x', 15)}</button></div>` : ''}
+      ${Object.keys(byDate).sort().map((date) => `
       <div style="margin-bottom:18px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
+          ${isAdmin ? `<label class="gun-sec" title="Bu günün tüm seferlerini seç">
+            <input type="checkbox" class="gun-kutu" data-date="${date}"><span>Tümü</span></label>` : ''}
           <h4 style="font-size:14.5px">${trDate(date)}</h4>
           <span class="badge">${byDate[date].length} sefer</span>
         </div>
         <div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>
+          ${isAdmin ? '<th style="width:34px"></th>' : ''}
           <th>Saat</th><th>Güzergah</th><th>Otobüs</th><th>Doluluk</th><th class="num">Fiyat</th>
-          <th class="num">Ciro</th><th>Durum</th><th></th></tr></thead><tbody>
+          <th class="num">Ciro</th><th>Durum</th><th class="islem-sutun"></th></tr></thead><tbody>
           ${byDate[date].map((t) => {
             const pct = Math.round((t.sold / t.capacity) * 100);
             return `<tr class="row-click" onclick="location.hash='#/sefer/${t.id}'">
+              ${isAdmin ? `<td onclick="event.stopPropagation()">
+                <input type="checkbox" class="sefer-kutu" data-id="${t.id}" data-date="${date}"
+                  data-sold="${t.sold}" ${secili.has(t.id) ? 'checked' : ''}
+                  title="Toplu silme için seç"></td>` : ''}
               <td><b style="font-size:15px">${t.depart_time}</b></td>
               <td><b>${esc(t.origin)} → ${esc(t.destination)}</b></td>
               <td>${esc(t.plate)}<div style="color:var(--muted);font-size:12px">${esc(t.bus_name)}</div></td>
@@ -678,8 +743,8 @@ async function pageSeferler() {
               <td class="num">${TL0(t.price)}</td>
               <td class="num"><b>${TL0(t.revenue)}</b></td>
               <td>${tripBadge(t.status)}</td>
-              <td class="num"><div class="row-actions">
-                <span class="btn btn-soft btn-sm">Koltuklar →</span>
+              <td class="num islem-sutun"><div class="row-actions">
+                <span class="btn btn-soft btn-sm koltuk-btn">Koltuklar →</span>
                 ${isAdmin ? `<button class="btn btn-icon" title="Seferi düzenle"
                     onclick="event.stopPropagation();tripModal(${JSON.stringify(t).replace(/"/g, '&quot;')}, refreshCurrent)">${svg('edit', 15)}</button>` : ''}
                 ${isAdmin ? silBtn('Sefer', '/trips', t.id) : ''}
@@ -687,8 +752,89 @@ async function pageSeferler() {
             </tr>`;
           }).join('')}
         </tbody></table></div></div>
-      </div>`).join('');
+      </div>`).join('')}`;
+
+    if (!isAdmin) return;
+
+    /* ---- Seçim kutuları ---- */
+    const gunKutusunuTazele = (date) => {
+      const kutular = [...box.querySelectorAll(`.sefer-kutu[data-date="${date}"]`)];
+      const gun = box.querySelector(`.gun-kutu[data-date="${date}"]`);
+      if (!gun || !kutular.length) return;
+      const isaretli = kutular.filter((k) => k.checked).length;
+      gun.checked = isaretli === kutular.length;
+      gun.indeterminate = isaretli > 0 && isaretli < kutular.length;
+    };
+
+    box.querySelectorAll('.sefer-kutu').forEach((kutu) => {
+      kutu.onclick = (e) => e.stopPropagation();
+      kutu.onchange = () => {
+        const id = +kutu.dataset.id;
+        if (kutu.checked) secili.set(id, { sold: +kutu.dataset.sold || 0 });
+        else secili.delete(id);
+        gunKutusunuTazele(kutu.dataset.date);
+        topluCubuguTazele();
+      };
+    });
+
+    box.querySelectorAll('.gun-kutu').forEach((gun) => {
+      gun.onchange = () => {
+        box.querySelectorAll(`.sefer-kutu[data-date="${gun.dataset.date}"]`).forEach((k) => {
+          k.checked = gun.checked;
+          const id = +k.dataset.id;
+          if (gun.checked) secili.set(id, { sold: +k.dataset.sold || 0 });
+          else secili.delete(id);
+        });
+        topluCubuguTazele();
+      };
+    });
+
+    Object.keys(byDate).forEach(gunKutusunuTazele);
+    topluCubuguTazele();
   };
+
+  if (isAdmin) {
+    document.getElementById('topluVazgec').onclick = () => {
+      secili.clear();
+      document.querySelectorAll('.sefer-kutu,.gun-kutu').forEach((k) => { k.checked = false; k.indeterminate = false; });
+      topluCubuguTazele();
+    };
+
+    document.getElementById('topluSil').onclick = async () => {
+      const idler = [...secili.keys()];
+      if (!idler.length) return;
+      const bilet = [...secili.values()].reduce((s, x) => s + x.sold, 0);
+
+      const onay = await new Promise((resolve) => {
+        const close = modal({
+          title: `${idler.length} sefer silinsin mi?`,
+          body: `
+            <div class="del-target">${idler.length} sefer seçtiniz</div>
+            ${bilet ? `<div class="warn-box">${svg('warn', 18)}
+              <div><b>Dikkat:</b> bu seferlerde toplam <b>${bilet} satılmış bilet</b> var.
+              Silerseniz biletler de gider.</div></div>`
+            : `<div class="info-box">${svg('info', 18)}
+              <div>Bu seferlerde satılmış bilet yok, gönül rahatlığıyla silebilirsiniz.</div></div>`}
+            <div class="info-box">${svg('info', 18)}
+              <div>Hepsi <b>çöp kutusuna</b> gidecek. Yanlışlıkla sildiyseniz tek tuşla geri alabilirsiniz.</div></div>`,
+          footer: `<button class="btn btn-ghost" id="tno">Vazgeç</button>
+                   <button class="btn btn-danger" id="tyes">${svg('trash', 15)} Evet, ${idler.length} seferi sil</button>`
+        });
+        document.getElementById('tno').onclick = () => { close(); resolve(false); };
+        document.getElementById('tyes').onclick = () => { close(); resolve(true); };
+      });
+      if (!onay) return;
+
+      try {
+        const r = await api('/trips/toplu-sil', { method: 'POST', body: JSON.stringify({ ids: idler }) });
+        secili.clear();
+        topluCubuguTazele();
+        topluGeriAlBildirimi(`${r.silinen} sefer silindi${r.bilet ? ` (${r.bilet} bilet dahil)` : ''}.`, r.trash_ids, load);
+        load();
+        copSayisiniTazele();
+      } catch (ex) { toast(ex.message, 'err', 7000); }
+    };
+  }
 
   document.getElementById('fBtn').onclick = load;
   ['fFrom','fTo','fRoute'].forEach(id => document.getElementById(id).onchange = load);
@@ -724,13 +870,52 @@ function tripModal(trip, after) {
         </select></div>`
       : `<div class="field"><label>Kaç gün tekrarlansın?</label>
           <input type="number" min="1" max="60" class="input" id="tRepeat" value="1">
-          <div style="font-size:12px;color:var(--muted);margin-top:5px">1 = sadece seçilen gün. Örn. 30 yazarsanız 30 gün boyunca her gün aynı saatte sefer oluşturulur.</div></div>`}
+          <div style="font-size:12px;color:var(--muted);margin-top:5px">
+            <b>1 = sadece seçtiğiniz gün.</b> Daha büyük bir sayı yazarsanız o kadar gün boyunca
+            <b>her gün ayrı bir sefer</b> oluşturulur.</div>
+          <div id="tOnizleme" class="info-box" style="margin-top:10px"></div>
+        </div>`}
       <div class="field"><label>Not</label><input class="input" id="tNotes" value="${trip ? esc(trip.notes || '') : ''}" placeholder="örn. Gece seferi, ikramlı"></div>`,
     footer: `<button class="btn btn-ghost" onclick="closeModal()">Vazgeç</button>
              <button class="btn btn-primary" id="tSave">${trip ? 'Kaydet' : 'Oluştur'}</button>`
   });
 
+  /* Kaç sefer oluşacağını canlı göster — sürpriz olmasın */
+  const onizlemeTazele = () => {
+    const kutu = document.getElementById('tOnizleme');
+    if (!kutu) return;
+    const gun = Math.min(Math.max(+document.getElementById('tRepeat').value || 1, 1), 60);
+    const bas = document.getElementById('tDate').value || todayISO();
+    const saat = document.getElementById('tTime').value || '09:00';
+    const son = addDaysISO(bas, gun - 1);
+    kutu.className = gun > 1 ? 'warn-box' : 'info-box';
+    kutu.innerHTML = gun > 1
+      ? `${svg('warn', 18)}<div><b>${gun} ayrı sefer oluşturulacak.</b><br>
+         ${esc(trDate(bas))} ile ${esc(trDate(son))} arası, her gün saat <b>${esc(saat)}</b>.</div>`
+      : `${svg('info', 18)}<div><b>Tek sefer oluşturulacak:</b> ${esc(trDate(bas))}, saat <b>${esc(saat)}</b>.</div>`;
+  };
+  if (!trip) {
+    ['tRepeat', 'tDate', 'tTime'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) { el.oninput = onizlemeTazele; el.onchange = onizlemeTazele; }
+    });
+    onizlemeTazele();
+  }
+
   document.getElementById('tSave').onclick = async (e) => {
+    /* Birden fazla sefer oluşacaksa ayrıca onay iste */
+    if (!trip) {
+      const gun = Math.min(Math.max(+document.getElementById('tRepeat').value || 1, 1), 60);
+      if (gun > 1) {
+        const bas = document.getElementById('tDate').value || todayISO();
+        const onay = await confirmBox(
+          `${gun} sefer birden oluşturulacak`,
+          `${trDate(bas)} tarihinden başlayarak ${gun} gün boyunca her gün bir sefer açılacak. ` +
+          `Sadece tek gün için sefer istiyorsanız "Kaç gün tekrarlansın?" alanına 1 yazın.`,
+          `Evet, ${gun} sefer oluştur`, false);
+        if (!onay) return;
+      }
+    }
     const b = {
       route_id: +document.getElementById('tRoute').value,
       bus_id: +document.getElementById('tBus').value,
@@ -1953,6 +2138,8 @@ async function pageAyarlar() {
         <button class="btn btn-primary" id="coSave">Kaydet</button>
       </div>
       <div style="display:flex;flex-direction:column;gap:16px">
+        ${S.user.role === 'admin' ? '<div id="demoKart"></div>' : ''}
+
         <div class="card card-pad">
           <h4 style="margin-bottom:6px">Yardım</h4>
           <p style="color:var(--muted);font-size:13px;margin:0 0 12px">
@@ -2060,6 +2247,7 @@ async function pageAyarlar() {
   }).catch(() => {});
 
   renderSmsCard();
+  renderDemoCard();
 
   api('/system').then((s) => {
     const box = document.getElementById('sysBox');
@@ -2074,6 +2262,63 @@ async function pageAyarlar() {
         <div style="color:var(--faint);font-size:12px">Sunucu ${new Date(s.started).toLocaleString('tr-TR')} tarihinden beri çalışıyor · Node ${esc(s.node)}</div>
       </div>`;
   }).catch(() => {});
+}
+
+/* ----------------------------- Örnek veri temizliği ----------------------------- */
+async function renderDemoCard() {
+  const kutu = document.getElementById('demoKart');
+  if (!kutu) return;
+  let d;
+  try { d = await api('/demo'); } catch { return; }
+  if (!d.varMi) { kutu.innerHTML = ''; return; }
+
+  const liste = [
+    d.seferSayisi ? `${d.seferSayisi} sefer` : null,
+    d.otobusler.length ? `${d.otobusler.length} otobüs` : null,
+    d.guzergahlar.length ? `${d.guzergahlar.length} güzergah` : null,
+    d.kullanicilar.length ? `${d.kullanicilar.length} demo hesap` : null
+  ].filter(Boolean);
+
+  kutu.innerHTML = `
+    <div class="card card-pad" style="border-color:var(--hold-br)">
+      <h4 style="margin-bottom:6px">${svg('warn', 16)} Örnek kayıtlar duruyor</h4>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 12px">
+        Sistem ilk kurulduğunda tanıtım amacıyla eklenen örnek kayıtlar hâlâ duruyor.
+        Bunlar sizin girdiğiniz kayıtlar değildir — "sistem kendiliğinden sefer oluşturuyor"
+        izlenimi veren şey budur.</p>
+
+      <div class="del-target" style="font-size:13.5px;font-weight:600">${esc(liste.join(' · '))}</div>
+
+      <div style="font-size:12.5px;color:var(--muted);margin-bottom:12px">
+        ${d.otobusler.length ? `<div>Otobüsler: ${esc(d.otobusler.join(', '))}</div>` : ''}
+        ${d.guzergahlar.length ? `<div>Güzergahlar: ${esc(d.guzergahlar.join(', '))}</div>` : ''}
+        ${d.kullanicilar.length ? `<div>Hesaplar: ${esc(d.kullanicilar.join(', '))}</div>` : ''}
+      </div>
+
+      ${d.biletSayisi ? `<div class="warn-box">${svg('warn', 18)}
+        <div>Bu seferlerde <b>${d.biletSayisi} satılmış bilet</b> var. Deneme amaçlı sattıysanız
+        sorun yok. Gerçek satışsa önce onları başka bir sefere taşıyın.</div></div>`
+      : `<div class="info-box">${svg('info', 18)}
+        <div>Bu kayıtlarda satılmış bilet yok, gönül rahatlığıyla temizleyebilirsiniz.</div></div>`}
+
+      <button class="btn btn-danger" id="demoSil">${svg('trash', 15)} Örnek kayıtları temizle</button>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">
+        Hepsi çöp kutusuna gider, 30 gün içinde geri alınabilir.</div>
+    </div>`;
+
+  document.getElementById('demoSil').onclick = async () => {
+    const onay = await confirmBox(
+      'Örnek kayıtlar temizlensin mi?',
+      `${liste.join(', ')} çöp kutusuna taşınacak. Fikrinizi değiştirirseniz Çöp Kutusu ekranından geri alabilirsiniz.`,
+      'Evet, temizle');
+    if (!onay) return;
+    try {
+      const r = await api('/demo/temizle', { method: 'POST' });
+      toast(`${r.silinen} örnek kayıt temizlendi. Sistem artık sizin kayıtlarınızla çalışıyor.`, 'ok', 6000);
+      renderDemoCard();
+      copSayisiniTazele();
+    } catch (ex) { toast(ex.message, 'err', 7000); }
+  };
 }
 
 /* ----------------------------- Bildirim ayarları ----------------------------- */
@@ -2464,12 +2709,12 @@ async function router() {
    BAŞLATMA
    ========================================================================== */
 (async function init() {
-  if (!token()) { location.href = '/giris'; return; }
+  if (!token()) { location.href = '/giris#sorumlu'; return; }
   try {
     S.user = await api('/me');
     const s = await api('/settings').catch(() => ({ company: { name: 'REZERVASYON' } }));
     S.company = s.company;
-  } catch { localStorage.clear(); location.href = '/giris'; return; }
+  } catch { localStorage.clear(); location.href = '/giris#sorumlu'; return; }
 
   const theme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', theme);
@@ -2491,7 +2736,7 @@ async function router() {
   document.getElementById('logoutBtn').onclick = async () => {
     if (!await confirmBox('Çıkış yap', 'Oturumunuzu kapatmak istediğinize emin misiniz?', 'Çıkış yap', false)) return;
     await api('/logout', { method: 'POST', body: '{}' }).catch(() => {});
-    localStorage.clear(); location.href = '/giris';
+    localStorage.clear(); location.href = '/giris#sorumlu';
   };
   document.getElementById('hamburger').onclick = () => {
     document.getElementById('sidebar').classList.toggle('open');

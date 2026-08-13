@@ -13,7 +13,53 @@ giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
 
 ## Neler var?
 
-**Kendi kendini denetleyen kurulum (yeni)**
+**Serhendi Turizm kurumsal kimliği (yeni)**
+
+- Firmanın **gerçek logosu** sisteme yerleştirildi: giriş ekranı, karşılama sayfası,
+  yönetim paneli, biletler, yolcu listeleri ve telefon ana ekran simgesi
+- Renk düzeni logodan alındı: **koyu yeşil `#166b42`** ve **altın `#d7bb55`**
+- Küçük alanlarda amblem (lale + pusula), çıktılarda yazılı tam logo kullanılır
+- Logo veri olarak gömülmez, dosya yolu tutulur — sayfa gereksiz büyümez
+
+**Toplu sefer silme (yeni)**
+
+- Sefer listesinde satırların solunda **seçim kutucukları**; tarih başlığındaki kutucuk o günün tamamını seçer
+- Seçince üstte çubuk çıkar: kaç sefer seçildi, içinde kaç satılmış bilet var
+- **Seçilenleri sil** ile hepsi tek hamlede çöp kutusuna gider, tek düğmeyle **toplu geri alınır**
+- Silme düğmesi artık tabloda **sabit sütunda** — yatay kaydırma gerekmez, hep görünür
+- Yeni sefer formunda **kaç sefer oluşacağı canlı gösterilir**
+  ("20 ayrı sefer oluşturulacak: 12–31 Ağustos, her gün 09:00") ve birden fazlaysa ayrıca onay istenir
+
+**Sistem boş kurulur (yeni)**
+
+- Kurulumda **hiçbir örnek sefer, otobüs, güzergah veya demo hesap oluşturulmaz** —
+  sadece tek bir yönetici hesabı açılır
+- Eski kurulumlarda kalan örnek kayıtlar için **Ayarlar → "Örnek kayıtları temizle"**
+  düğmesi; hepsi çöp kutusuna gider, geri alınabilir, firmanın kendi kayıtlarına dokunulmaz
+- Giriş ekranındaki kurulum bilgisi, yönetici şifresini değiştirdiği anda kaybolur
+
+**Premium arayüz — Tailwind CSS (yeni)**
+
+- Müşteri karşılama sayfası ve yetkili giriş ekranı **Tailwind CSS** ile yazıldı
+- **Giriş ekranı**: split-screen — solda seyahat temalı lacivert gradyan, marka logosu ve
+  5 saniyede bir değişen dinamik slogan; sağda `rounded-2xl` minimalist form,
+  odaklanınca mavi parlayan girdiler (`focus:ring-2 focus:ring-blue-500`), şifre göster/gizle
+- **Bilet arama**: sayı şeridinin üzerine binen **yüzen kart** (floating card)
+- Sefer kartlarında doluluğa göre **canlı rozetler**: Müsait / Doluyor / Son koltuklar / Doldu
+- Lucide çizgi ikonları satır içi gömülü (dış bağımlılık yok)
+- Inter yazı tipi, `bg-slate-50` zemin, `shadow-sm hover:shadow-md transition-all duration-300`
+
+> CSS **derlenmiş olarak pakette gelir** (`public/css/tailwind.css`, ~35 KB).
+> Kurulum veya derleme adımı gerekmez. Sınıfları değiştirirseniz `npm run stil` ile yeniden üretin.
+
+**Karşılama ekranı**
+
+- Tam ekran karşılama: marka, slogan, hareketli arka plan
+- **İki ayrı giriş düğmesi**: *Müşteri Girişi* (şifresiz, sefer ve koltuk görüntüleme) ve
+  *Yetkili Girişi* (personel satış paneli)
+- Canlı sayı şeridi (yaklaşan sefer, güzergah, boş koltuk), özellik kartları, kurumsal alt bilgi
+
+**Kendi kendini denetleyen kurulum**
 
 - `/durum` adresi, **her dosyanın sunucuya doğru yüklenip yüklenmediğini** gösterir —
   güncellemeden sonra tek bakışta doğrulama
@@ -130,18 +176,18 @@ npm start
 
 Tarayıcıdan **http://localhost:3000** adresine gidin.
 
-### Demo hesaplar
+### İlk giriş
 
 | Rol | Kullanıcı adı | Şifre |
 |---|---|---|
 | Yönetici | `admin` | `admin123` |
-| Acente | `acente1` | `acente123` |
-| Acente | `acente2` | `acente123` |
 
-> **İlk iş:** Ayarlar sayfasından `admin` şifresini değiştirin ve kendi kullanıcılarınızı oluşturun.
+> **İlk iş:** Ayarlar sayfasından şifrenizi değiştirin. Değiştirdiğiniz anda giriş
+> ekranındaki kurulum bilgisi kaybolur.
 
-Sistem ilk açılışta örnek otobüsler, güzergahlar ve seferlerle gelir.
-Sıfırdan başlamak isterseniz `data/` klasöründeki `otobus.db*` dosyalarını silip yeniden başlatın.
+**Sistem tamamen boş başlar** — örnek sefer, otobüs veya güzergah eklenmez.
+Sırasıyla güzergahlarınızı, otobüslerinizi ve seferlerinizi girersiniz;
+ilk girişteki karşılama turu bu sırayı adım adım gösterir.
 
 ---
 
@@ -228,8 +274,8 @@ Kural ve güvenlik testleri (sunucu çalışırken):
 
 ```bash
 node test-api.js     # 30 test — satış kuralları
-node test-silme.js   # 40 test — silme, çöp kutusu, firma kimliği
-node test-acik.js    # 42 test — herkese açık sayfa, orta kapı, gizlilik, kurulum denetimi
+node test-silme.js   # 51 test — silme, çöp kutusu, firma kimliği
+node test-acik.js    # 45 test — açık sayfa, orta kapı, gizlilik, kurulum denetimi
 ```
 
 veya ikisi birden:
@@ -259,11 +305,14 @@ src/auth.js          Giriş, JWT, rol kontrolü
 src/api.js           Tüm API uçları (satış, iptal, rapor, tanımlar, silme)
 src/trash.js         Çöp kutusu: silme, geri alma, otomatik temizlik
 src/durum.js         Kurulum denetimi, /durum sayfası, eksik dosya koruması
-public/anasayfa.html Herkese açık sefer ve koltuk sayfası
+public/anasayfa.html Karşılama ekranı + herkese açık sefer ve koltuk sayfası
+test-kurulum.js      Testlerin kendi verisini oluşturduğu hazırlık dosyası
 public/index.html    Personel giriş ekranı (/giris)
 public/app.html      Uygulama kabuğu
 public/js/app.js     Arayüz (koltuk haritası, satış paneli, raporlar, yazdırma)
-public/css/style.css Tasarım
+public/css/style.css Yönetim paneli tasarımı
+public/css/tailwind.css Karşılama + giriş ekranı (Tailwind, derlenmiş)
+stil/giris.css       Tailwind kaynak dosyası (npm run stil)
 data/otobus.db       Veritabanı (otomatik oluşur)
 ```
 

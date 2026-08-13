@@ -20,7 +20,8 @@ const ZORUNLU = [
   { yol: 'public/index.html', ne: 'Personel giriş ekranı' },
   { yol: 'public/app.html', ne: 'Uygulama ekranı' },
   { yol: 'public/js/app.js', ne: 'Arayüz kodu' },
-  { yol: 'public/css/style.css', ne: 'Tasarım dosyası' },
+  { yol: 'public/css/style.css', ne: 'Yönetim paneli tasarımı' },
+  { yol: 'public/css/tailwind.css', ne: 'Karşılama ve giriş ekranı tasarımı' },
   { yol: 'public/sw.js', ne: 'Telefon uygulaması desteği' },
   { yol: 'public/manifest.webmanifest', ne: 'Telefon uygulaması tanımı' },
   { yol: 'public/cevrimdisi.html', ne: 'Çevrimdışı bilgi ekranı' },
@@ -34,7 +35,8 @@ const ZORUNLU = [
 
 /* Olmasa da çalışır, ama görüntü eksik kalır. */
 const ONERILEN = [
-  { yol: 'public/icons/logo-serhend.svg', ne: 'Firma logosu' },
+  { yol: 'public/icons/logo-serhendi.png', ne: 'Firma logosu (yazılı, çıktılar için)' },
+  { yol: 'public/icons/amblem-serhendi.png', ne: 'Firma amblemi (simge)' },
   { yol: 'public/icons/icon-192.png', ne: 'Telefon simgesi (küçük)' },
   { yol: 'public/icons/icon-512.png', ne: 'Telefon simgesi (büyük)' },
   { yol: 'public/icons/apple-touch-icon.png', ne: 'iPhone simgesi' },

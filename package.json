@@ -1,11 +1,12 @@
 {
   "name": "otobus-rezervasyon",
-  "version": "1.4.0",
+  "version": "1.9.0",
   "description": "Otobüs koltuk, kafile rezervasyon ve satış sistemi",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test-api.js && node test-silme.js && node test-acik.js"
+    "test": "node test-api.js && node test-silme.js && node test-acik.js",
+    "stil": "tailwindcss -c tailwind.config.js -i stil/giris.css -o public/css/tailwind.css --minify"
   },
   "license": "MIT",
   "dependencies": {
@@ -17,5 +18,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
   }
 }
