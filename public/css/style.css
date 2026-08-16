@@ -579,6 +579,7 @@ table.tbl td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:
 /* ==========================================================================
    TOPLU SEÇİM VE SİLME
    ========================================================================== */
+.toplu-cubuk[hidden]{display:none}   /* hidden özniteliği stile yenik düşmesin */
 .toplu-cubuk{
   position:sticky;top:8px;z-index:30;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   background:var(--surface);border:1.5px solid var(--danger);border-radius:var(--r);
@@ -611,4 +612,67 @@ tr.row-click:hover td.islem-sutun{background:var(--surface-2)}
 @media (max-width:560px){
   .koltuk-btn{display:none}
   .toplu-cubuk{position:fixed;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));top:auto;margin:0}
+}
+
+/* ==========================================================================
+   GÜNÜN ÖZETİ — telefonda derli toplu dursun
+   Eskiden dört kutu alt alta uzayıp ekranı dolduruyordu.
+   ========================================================================== */
+@media (max-width:640px){
+  .stats{grid-template-columns:1fr 1fr;gap:10px}
+  .stat{padding:13px 13px 14px;border-radius:var(--r)}
+  .stat .ico{width:32px;height:32px;border-radius:9px}
+  .stat .ico svg{width:16px;height:16px}
+  .stat .lbl{font-size:10.5px;letter-spacing:.04em}
+  .stat .val{font-size:22px;margin:2px 0 1px}
+  .stat .sub{font-size:11px}
+  .stat::after{width:74px;height:74px}   /* köşedeki renkli daire küçülsün */
+}
+
+/* ==========================================================================
+   TANIM LİSTELERİ — kart görünümü
+   Otobüs gibi kayıtlar tabloda yan yana sıkışıp düğmeleri ekran dışında
+   kalıyordu. Kart düzeninde "Düzenle" ve "Sil" her zaman kaydın yanında.
+   ========================================================================== */
+.kayit-listesi{display:flex;flex-direction:column;gap:11px}
+
+.kayit{
+  display:flex;align-items:center;gap:15px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:15px 17px;transition:border-color .18s,box-shadow .18s,transform .1s;
+}
+.kayit:hover{border-color:var(--brand-300);box-shadow:var(--sh);transform:translateY(-1px)}
+.kayit.pasif{opacity:.62}
+
+.kayit-ikon{
+  width:46px;height:46px;flex-shrink:0;border-radius:13px;display:grid;place-items:center;
+  background:linear-gradient(140deg,var(--brand-700),var(--brand-500));color:#fff;
+}
+.kayit-ikon svg{width:22px;height:22px}
+
+.kayit-govde{flex:1;min-width:0}
+.kayit-bas{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.kayit-bas b{font-size:17px;letter-spacing:-.01em}
+.kayit-alt{color:var(--muted);font-size:13px;margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kayit-rozetler{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+
+.kayit-islem{display:flex;gap:8px;flex-shrink:0}
+
+/* Listenin sonundaki ekleme kutusu — ekleme ve silme aynı ekranda */
+.kayit-ekle{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  background:transparent;border:1.5px dashed var(--border-strong);border-radius:var(--r);
+  padding:16px;color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;
+  transition:all .18s;
+}
+.kayit-ekle:hover{border-color:var(--brand-500);color:var(--brand-500);background:var(--surface-2)}
+.kayit-ekle svg{width:18px;height:18px}
+
+@media (max-width:640px){
+  .kayit{flex-wrap:wrap;gap:12px;padding:14px}
+  .kayit-ikon{width:40px;height:40px;border-radius:11px}
+  .kayit-govde{flex:1 1 auto;min-width:0}
+  .kayit-islem{flex:1 0 100%;gap:8px}
+  .kayit-islem .btn{flex:1;justify-content:center}
 }

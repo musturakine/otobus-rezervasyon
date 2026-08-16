@@ -320,13 +320,13 @@ const loading = () => { view().innerHTML = '<div class="loading-box"><span class
 /* ----------------------------- Menü ----------------------------- */
 const MENU = [
   { g: 'İşlemler', items: [
-    { id: 'panel', label: 'Panel', icon: 'panel' },
     { id: 'seferler', label: 'Seferler & Satış', icon: 'bus' },
     { id: 'binis', label: 'Biniş Kontrolü', icon: 'check' },
     { id: 'biletler', label: 'Biletler', icon: 'ticket' },
     { id: 'kafileler', label: 'Kafileler', icon: 'group' }
   ]},
   { g: 'Analiz', items: [
+    { id: 'panel', label: 'Günün Özeti', icon: 'panel' },
     { id: 'raporlar', label: 'Raporlar', icon: 'chart' }
   ]},
   { g: 'Tanımlar', admin: true, items: [
@@ -353,10 +353,10 @@ function renderNav() {
   copSayisiniTazele();
 }
 const BOTTOM = [
-  { id: 'panel', label: 'Panel', icon: 'panel' },
   { id: 'seferler', label: 'Satış', icon: 'bus' },
   { id: 'binis', label: 'Biniş', icon: 'check' },
   { id: 'biletler', label: 'Biletler', icon: 'ticket' },
+  { id: 'kafileler', label: 'Kafileler', icon: 'group' },
   { id: '__menu', label: 'Menü', icon: 'list' }
 ];
 
@@ -1885,21 +1885,42 @@ async function pageOtobusler() {
 
     ${!list.length ? `<div class="card">${emptyBox('Henüz otobüs eklenmemiş',
         'Sefer açabilmek için önce en az bir otobüs tanımlamanız gerekiyor.',
-        { buton: { yazi: 'İlk otobüsü ekle', tikla: "document.getElementById('newBus').click()" } })}</div>` : ''}
-    <div class="card" ${!list.length ? 'style="display:none"' : ''}><div class="table-wrap"><table class="tbl"><thead><tr>
-      <th>Plaka</th><th>Model / Ad</th><th class="num">Sıra</th><th>Arka 5'li</th><th>Orta kapı</th><th class="num">Kapasite</th><th>Özellikler</th><th>Durum</th><th></th>
-    </tr></thead><tbody>
-      ${list.map((b) => `<tr><td><b>${esc(b.plate)}</b></td><td>${esc(b.name)}</td>
-        <td class="num">${b.rows_cnt}</td><td>${b.back_row ? '<span class="badge badge-green">Var</span>' : '<span class="badge">Yok</span>'}</td>
-        <td>${b.mid_door ? `<span class="badge badge-amber">${b.mid_door_row}. sıra</span>` : '<span class="badge">Yok</span>'}</td>
-        <td class="num"><b>${b.capacity}</b></td><td style="font-size:12.5px;color:var(--muted)">${esc(b.notes || '-')}</td>
-        <td>${b.active ? '<span class="badge badge-green">Aktif</span>' : '<span class="badge badge-red">Pasif</span>'}</td>
-        <td class="num"><div class="row-actions">
-          <button class="btn btn-soft btn-sm" onclick="busModal(${b.id})">Düzenle</button>
-          ${silBtn('Otobüs', '/buses', b.id, 'pageOtobusler')}
-        </div></td></tr>`).join('')}
-    </tbody></table></div></div>`;
-  document.getElementById('newBus').onclick = () => busModal(null);
+        { buton: { yazi: 'İlk otobüsü ekle', tikla: "document.getElementById('newBus').click()" } })}</div>`
+    : `<div class="kayit-listesi">
+      ${list.map((b) => `
+        <div class="kayit ${b.active ? '' : 'pasif'}">
+          <div class="kayit-ikon">${svg('bus', 22)}</div>
+
+          <div class="kayit-govde">
+            <div class="kayit-bas">
+              <b>${esc(b.plate)}</b>
+              ${b.active ? '' : '<span class="badge badge-red">Pasif</span>'}
+            </div>
+            <div class="kayit-alt">${esc(b.name)}${b.notes ? ' · ' + esc(b.notes) : ''}</div>
+            <div class="kayit-rozetler">
+              <span class="badge badge-blue">${b.capacity} koltuk</span>
+              <span class="badge">${b.rows_cnt} sıra</span>
+              ${b.back_row ? '<span class="badge badge-green">Arka 5\'li</span>' : ''}
+              ${b.mid_door ? `<span class="badge badge-amber">Orta kapı · ${b.mid_door_row}. sıra</span>` : ''}
+            </div>
+          </div>
+
+          <div class="kayit-islem">
+            <button class="btn btn-soft btn-sm" onclick="busModal(${b.id})">${svg('edit', 14)} Düzenle</button>
+            <button class="btn btn-danger-soft btn-sm"
+              onclick="silAkisi({tur:'Otobüs',yol:'/buses',id:${b.id},sonra:pageOtobusler})">${svg('trash', 14)} Sil</button>
+          </div>
+        </div>`).join('')}
+
+      <button class="kayit-ekle" id="newBus2">
+        ${svg('plus', 18)}<span>Yeni otobüs ekle</span>
+      </button>
+    </div>`}`;
+
+  const ekle = () => busModal(null);
+  document.getElementById('newBus').onclick = ekle;
+  const alt = document.getElementById('newBus2');
+  if (alt) alt.onclick = ekle;
 }
 
 function busModal(id) {
@@ -1989,18 +2010,30 @@ async function pageGuzergahlar() {
 
     ${!list.length ? `<div class="card">${emptyBox('Henüz güzergah eklenmemiş',
         'Sefer açabilmek için önce hangi şehirler arasında çalıştığınızı tanımlayın.',
-        { buton: { yazi: 'İlk güzergahı ekle', tikla: "document.getElementById('newRoute').click()" } })}</div>` : ''}
-    <div class="card" ${!list.length ? 'style="display:none"' : ''}><div class="table-wrap"><table class="tbl"><thead><tr>
-      <th>Kalkış</th><th>Varış</th><th class="num">Süre</th><th>Durum</th><th></th></tr></thead><tbody>
-      ${list.map((r) => `<tr><td><b>${esc(r.origin)}</b></td><td><b>${esc(r.destination)}</b></td>
-        <td class="num">${Math.floor(r.duration_min / 60)} sa ${r.duration_min % 60} dk</td>
-        <td>${r.active ? '<span class="badge badge-green">Aktif</span>' : '<span class="badge badge-red">Pasif</span>'}</td>
-        <td class="num"><div class="row-actions">
-          <button class="btn btn-soft btn-sm" onclick="routeModal(${r.id})">Düzenle</button>
-          ${silBtn('Güzergah', '/routes', r.id, 'pageGuzergahlar')}
-        </div></td></tr>`).join('')}
-    </tbody></table></div></div>`;
-  document.getElementById('newRoute').onclick = () => routeModal(null);
+        { buton: { yazi: 'İlk güzergahı ekle', tikla: "document.getElementById('newRoute').click()" } })}</div>`
+    : `<div class="kayit-listesi">
+      ${list.map((r) => `
+        <div class="kayit ${r.active ? '' : 'pasif'}">
+          <div class="kayit-ikon">${svg('route', 22)}</div>
+          <div class="kayit-govde">
+            <div class="kayit-bas">
+              <b>${esc(r.origin)} → ${esc(r.destination)}</b>
+              ${r.active ? '' : '<span class="badge badge-red">Pasif</span>'}
+            </div>
+            <div class="kayit-alt">Tahmini süre: ${Math.floor(r.duration_min / 60)} sa ${r.duration_min % 60} dk</div>
+          </div>
+          <div class="kayit-islem">
+            <button class="btn btn-soft btn-sm" onclick="routeModal(${r.id})">${svg('edit', 14)} Düzenle</button>
+            <button class="btn btn-danger-soft btn-sm"
+              onclick="silAkisi({tur:'Güzergah',yol:'/routes',id:${r.id},sonra:pageGuzergahlar})">${svg('trash', 14)} Sil</button>
+          </div>
+        </div>`).join('')}
+      <button class="kayit-ekle" id="newRoute2">${svg('plus', 18)}<span>Yeni güzergah ekle</span></button>
+    </div>`}`;
+  const rEkle = () => routeModal(null);
+  document.getElementById('newRoute').onclick = rEkle;
+  const rAlt = document.getElementById('newRoute2');
+  if (rAlt) rAlt.onclick = rEkle;
 }
 
 function routeModal(id) {
@@ -2040,20 +2073,37 @@ async function pageKullanicilar() {
       'Başkasının satışını göremez, sefer açamaz, silemez.<br>' +
       'Bir personel işten ayrılırsa hesabı silmek yerine <b>Pasif</b> yapmanız yeterli — ' +
       'geçmiş satışları kayıtta kalır.')}
-    <div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>
-      <th>Kullanıcı</th><th>Ad Soyad</th><th>Acente</th><th>Telefon</th><th>Rol</th><th>Durum</th><th></th></tr></thead><tbody>
-      ${list.map((u) => `<tr><td><code style="font-weight:700">${esc(u.username)}</code></td><td><b>${esc(u.full_name)}</b></td>
-        <td>${esc(u.agency_name || '-')}</td><td>${esc(u.phone || '-')}</td>
-        <td>${u.role === 'admin' ? '<span class="badge badge-violet">Yönetici</span>' : '<span class="badge badge-blue">Acente</span>'}</td>
-        <td>${u.active ? '<span class="badge badge-green">Aktif</span>' : '<span class="badge badge-red">Pasif</span>'}</td>
-        <td class="num"><div class="row-actions">
-          <button class="btn btn-soft btn-sm" onclick="userModal(${u.id})">Düzenle</button>
-          ${u.id === S.user.id
-            ? `<button class="btn btn-icon" disabled title="Kendi hesabınızı silemezsiniz">${svg('trash', 15)}</button>`
-            : silBtn('Kullanıcı', '/users', u.id, 'pageKullanicilar')}
-        </div></td></tr>`).join('')}
-    </tbody></table></div></div>`;
-  document.getElementById('newUser').onclick = () => userModal(null);
+    <div class="kayit-listesi">
+      ${list.map((u) => `
+        <div class="kayit ${u.active ? '' : 'pasif'}">
+          <div class="kayit-ikon" ${u.role === 'admin' ? 'style="background:linear-gradient(140deg,#5b21b6,#7c3aed)"' : ''}>
+            ${svg(u.role === 'admin' ? 'cog' : 'users', 22)}
+          </div>
+          <div class="kayit-govde">
+            <div class="kayit-bas">
+              <b>${esc(u.full_name)}</b>
+              ${u.role === 'admin' ? '<span class="badge badge-violet">Yönetici</span>' : '<span class="badge badge-blue">Acente</span>'}
+              ${u.active ? '' : '<span class="badge badge-red">Pasif</span>'}
+              ${u.id === S.user.id ? '<span class="badge badge-green">Siz</span>' : ''}
+            </div>
+            <div class="kayit-alt">
+              Kullanıcı adı: <b>${esc(u.username)}</b>${u.agency_name ? ' · ' + esc(u.agency_name) : ''}${u.phone ? ' · ' + esc(u.phone) : ''}
+            </div>
+          </div>
+          <div class="kayit-islem">
+            <button class="btn btn-soft btn-sm" onclick="userModal(${u.id})">${svg('edit', 14)} Düzenle</button>
+            ${u.id === S.user.id
+              ? `<button class="btn btn-soft btn-sm" disabled title="Kendi hesabınızı silemezsiniz">${svg('trash', 14)} Sil</button>`
+              : `<button class="btn btn-danger-soft btn-sm"
+                   onclick="silAkisi({tur:'Kullanıcı',yol:'/users',id:${u.id},sonra:pageKullanicilar})">${svg('trash', 14)} Sil</button>`}
+          </div>
+        </div>`).join('')}
+      <button class="kayit-ekle" id="newUser2">${svg('plus', 18)}<span>Yeni kullanıcı ekle</span></button>
+    </div>`;
+  const uEkle = () => userModal(null);
+  document.getElementById('newUser').onclick = uEkle;
+  const uAlt = document.getElementById('newUser2');
+  if (uAlt) uAlt.onclick = uEkle;
 }
 
 function userModal(id) {
@@ -2597,7 +2647,7 @@ async function printTickets(ids, silentIfEmpty) {
 /* ==========================================================================
    YÖNLENDİRİCİ
    ========================================================================== */
-const TITLES = { panel: 'Panel', seferler: 'Seferler & Satış', sefer: 'Koltuk Haritası', biletler: 'Biletler',
+const TITLES = { panel: 'Günün Özeti', seferler: 'Seferler & Satış', sefer: 'Koltuk Haritası', biletler: 'Biletler',
   kafileler: 'Kafileler', kafile: 'Kafile Detayı', raporlar: 'Raporlar', otobusler: 'Otobüsler',
   guzergahlar: 'Güzergahlar', kullanicilar: 'Kullanıcılar', ayarlar: 'Ayarlar', kayitlar: 'İşlem Kayıtları',
   binis: 'Biniş Kontrolü', bildirimler: 'Gönderim Kayıtları', cop: 'Çöp Kutusu' };
@@ -2673,13 +2723,13 @@ async function copKaliciSil(id) {
 }
 
 async function router() {
-  const parts = (location.hash || '#/panel').replace(/^#\//, '').split('/');
-  const page = parts[0] || 'panel';
+  const parts = (location.hash || '#/seferler').replace(/^#\//, '').split('/');
+  const page = parts[0] || 'seferler';
   const arg = parts[1];
-  document.getElementById('pageTitle').textContent = TITLES[page] || 'Panel';
+  document.getElementById('pageTitle').textContent = TITLES[page] || 'Seferler & Satış';
   markNav(page);
   const adminPages = ['otobusler', 'guzergahlar', 'kullanicilar', 'kayitlar', 'bildirimler', 'cop'];
-  if (adminPages.includes(page) && S.user.role !== 'admin') { toast('Bu sayfa için yetkiniz yok.', 'err'); location.hash = '#/panel'; return; }
+  if (adminPages.includes(page) && S.user.role !== 'admin') { toast('Bu sayfa için yetkiniz yok.', 'err'); location.hash = '#/seferler'; return; }
   try {
     switch (page) {
       case 'panel': return await pagePanel();
@@ -2697,7 +2747,7 @@ async function router() {
       case 'bildirimler': return await pageBildirimler();
       case 'kayitlar': return await pageKayitlar();
       case 'cop': return await pageCopKutusu();
-      default: location.hash = '#/panel';
+      default: location.hash = '#/seferler';
     }
   } catch (ex) {
     view().innerHTML = `<div class="card">${emptyBox('Sayfa yüklenemedi', ex.message)}</div>`;

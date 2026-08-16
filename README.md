@@ -13,6 +13,16 @@ giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
 
 ## Neler var?
 
+**Sadeleşen yönetim paneli (yeni)**
+
+- Giriş yapınca doğrudan **Seferler & Satış** ekranı açılır — boş özet sayfası karşılamaz
+- "Panel" menüye **Analiz → Günün Özeti** olarak taşındı; telefonda kutular ikişerli
+  dizilerek yer kaplamaz
+- Telefon alt menüsü: Satış · Biniş · Biletler · Kafileler · Menü
+- **Otobüs, güzergah ve kullanıcı listeleri kart düzeninde**: her kaydın yanında
+  **Düzenle** ve **Sil** düğmeleri her zaman görünür, yana kaydırmak gerekmez
+- Her listenin sonunda **"Yeni ... ekle"** kutusu — ekleme ve silme aynı ekranda
+
 **Serhendi Turizm kurumsal kimliği (yeni)**
 
 - Firmanın **gerçek logosu** sisteme yerleştirildi: giriş ekranı, karşılama sayfası,

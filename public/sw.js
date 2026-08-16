@@ -3,7 +3,7 @@
 
    ÖNEMLİ: Sürüm numarası her güncellemede değişmelidir. Değişince tarayıcı
    eski önbelleği siler ve yeni dosyaları indirir. */
-const SURUM = 'otobus-v1.9.0';
+const SURUM = 'otobus-v2.0.0';
 
 /* Çevrimdışıyken lazım olacak dosyalar */
 const KABUK = [

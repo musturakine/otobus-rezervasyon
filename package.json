@@ -1,6 +1,6 @@
 {
   "name": "otobus-rezervasyon",
-  "version": "1.9.0",
+  "version": "2.0.0",
   "description": "Otobüs koltuk, kafile rezervasyon ve satış sistemi",
   "main": "server.js",
   "scripts": {
