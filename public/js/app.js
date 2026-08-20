@@ -645,13 +645,15 @@ async function pageSeferler() {
 
     <div class="card card-pad" style="margin-bottom:16px">
       <div class="filters" style="margin:0">
-        <div class="field"><label>Tarihten</label><input type="date" class="input" id="fFrom" value="${todayISO()}"></div>
-        <div class="field"><label>Tarihe</label><input type="date" class="input" id="fTo" value="${addDaysISO(todayISO(), 14)}"></div>
-        <div class="field"><label>Güzergah</label>
-          <select class="input" id="fRoute"><option value="">Tümü</option>
+        <div class="field" style="flex:1"><label>Güzergah</label>
+          <select class="input" id="fRoute"><option value="">Tüm güzergahlar</option>
             ${routes.map((r) => `<option value="${r.id}">${esc(r.origin)} → ${esc(r.destination)}</option>`).join('')}
           </select></div>
-        <div class="field" style="flex:1"><label>Ara (plaka / şehir)</label><input class="input" id="fQ" placeholder="örn. Ankara veya 34 ABC"></div>
+        <div class="field"><label>Hangi seferler?</label>
+          <select class="input" id="fKapsam">
+            <option value="gelecek">Bugün ve sonrası</option>
+            <option value="hepsi">Geçmiş dahil tümü</option>
+          </select></div>
         <button class="btn btn-primary" id="fBtn">${svg('search', 16)} Listele</button>
       </div>
     </div>
@@ -685,21 +687,20 @@ async function pageSeferler() {
     const box = document.getElementById('tripList');
     box.innerHTML = '<div class="loading-box"><span class="spinner"></span></div>';
     const p = new URLSearchParams();
-    const f = document.getElementById('fFrom').value, t = document.getElementById('fTo').value;
-    if (f) p.set('from', f); if (t) p.set('to', t);
+    /* Varsayılan: bugünden itibaren bütün seferler. Tarih aralığı sormuyoruz —
+       kullanıcı "seferlerim nerede" diye aramasın diye hepsi listeleniyor. */
+    if (document.getElementById('fKapsam').value === 'gelecek') p.set('from', todayISO());
     const rid = document.getElementById('fRoute').value; if (rid) p.set('route_id', rid);
-    const q = document.getElementById('fQ').value.trim(); if (q) p.set('q', q);
     const trips = await api('/trips?' + p.toString());
 
     if (!trips.length) {
       box.innerHTML = `<div class="card">${emptyBox(
-        'Bu tarihlerde sefer yok',
+        'Sefer bulunamadı',
         'Aradığınız sefer görünmüyorsa şunları deneyin:',
         {
           adimlar: [
-            'Yukarıdaki <b>tarih aralığını</b> genişletin (örneğin bitiş tarihini ileri alın).',
-            'Güzergah seçiliyse <b>Tümü</b> yapın.',
-            'Arama kutusunu boşaltın.'
+            'Güzergah seçiliyse <b>Tüm güzergahlar</b> yapın.',
+            'Geçmiş tarihli sefer arıyorsanız <b>Geçmiş dahil tümü</b> seçin.'
           ],
           buton: isAdmin ? { yazi: 'Yeni sefer oluştur', tikla: "document.getElementById('newTrip').click()" } : null
         })}</div>`;
@@ -725,7 +726,7 @@ async function pageSeferler() {
         </div>
         <div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>
           ${isAdmin ? '<th style="width:34px"></th>' : ''}
-          <th>Saat</th><th>Güzergah</th><th>Otobüs</th><th>Doluluk</th><th class="num">Fiyat</th>
+          <th>Saat</th><th>Güzergah</th><th>Doluluk</th><th class="num">Fiyat</th>
           <th class="num">Ciro</th><th>Durum</th><th class="islem-sutun"></th></tr></thead><tbody>
           ${byDate[date].map((t) => {
             const pct = Math.round((t.sold / t.capacity) * 100);
@@ -736,7 +737,6 @@ async function pageSeferler() {
                   title="Toplu silme için seç"></td>` : ''}
               <td><b style="font-size:15px">${t.depart_time}</b></td>
               <td><b>${esc(t.origin)} → ${esc(t.destination)}</b></td>
-              <td>${esc(t.plate)}<div style="color:var(--muted);font-size:12px">${esc(t.bus_name)}</div></td>
               <td style="min-width:130px"><div style="display:flex;align-items:center;gap:8px">
                 <div class="progress" style="flex:1"><i style="width:${pct}%"></i></div>
                 <span style="font-size:12px;color:var(--muted);white-space:nowrap">${t.sold}/${t.capacity}</span></div></td>
@@ -837,8 +837,7 @@ async function pageSeferler() {
   }
 
   document.getElementById('fBtn').onclick = load;
-  ['fFrom','fTo','fRoute'].forEach(id => document.getElementById(id).onchange = load);
-  document.getElementById('fQ').onkeydown = (e) => { if (e.key === 'Enter') load(); };
+  ['fRoute','fKapsam'].forEach(id => document.getElementById(id).onchange = load);
   if (isAdmin) document.getElementById('newTrip').onclick = () => tripModal(null, load);
   load();
 }

@@ -13,7 +13,25 @@ giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
 
 ## Neler var?
 
-**Sadeleşen yönetim paneli (yeni)**
+**Koyu, buzlu cam tasarım — sürüm 2.1 (yeni)**
+
+- Müşteri sayfası ve sorumlu giriş ekranı **derin gece mavisi (`#0B132B` / `#0F172A`)**
+  zemin ve **altın sarı (`#EAB308`)** vurgularla yeniden tasarlandı
+- Kartlar buzlu cam (glassmorphic): yarı saydam zemin, ince ışık çizgisi, yumuşak gölge
+- Koltuk seçim ekranında dört durum kartı: **Boş · Bay dolu · Bayan dolu · Seçili**
+- Müşteri **koltuğa dokunarak seçim yapar**; seçtiği numaralar WhatsApp mesajına
+  ve arama kutusuna otomatik eklenir — satış yine gişede/telefonda kalır
+- İstatistik bandı: yaklaşan sefer · güzergah · boş koltuk · 7/24 telefon
+- "Neden bizimle yolculuk?" kartları ve iletişim bilgili alt bilgi eklendi
+- Telefonda tek sütuna iner, koltuk haritası parmakla rahat kullanılır
+
+**Sefer ekranı sadeleşti (yeni)**
+
+- Ana listeleme ekranındaki **tarihten–tarihe** kutuları kaldırıldı; sadece
+  **Güzergah** ve **Hangi seferler?** (bugün ve sonrası / geçmiş dahil) kaldı
+- Sefer tablosundan **araç plaka sütunu** çıkarıldı — ekran daha az kalabalık
+
+**Sadeleşen yönetim paneli**
 
 - Giriş yapınca doğrudan **Seferler & Satış** ekranı açılır — boş özet sayfası karşılamaz
 - "Panel" menüye **Analiz → Günün Özeti** olarak taşındı; telefonda kutular ikişerli
@@ -23,7 +41,7 @@ giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
   **Düzenle** ve **Sil** düğmeleri her zaman görünür, yana kaydırmak gerekmez
 - Her listenin sonunda **"Yeni ... ekle"** kutusu — ekleme ve silme aynı ekranda
 
-**Serhendi Turizm kurumsal kimliği (yeni)**
+**Serhendi Turizm kurumsal kimliği**
 
 - Firmanın **gerçek logosu** sisteme yerleştirildi: giriş ekranı, karşılama sayfası,
   yönetim paneli, biletler, yolcu listeleri ve telefon ana ekran simgesi
@@ -31,7 +49,7 @@ giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
 - Küçük alanlarda amblem (lale + pusula), çıktılarda yazılı tam logo kullanılır
 - Logo veri olarak gömülmez, dosya yolu tutulur — sayfa gereksiz büyümez
 
-**Toplu sefer silme (yeni)**
+**Toplu sefer silme**
 
 - Sefer listesinde satırların solunda **seçim kutucukları**; tarih başlığındaki kutucuk o günün tamamını seçer
 - Seçince üstte çubuk çıkar: kaç sefer seçildi, içinde kaç satılmış bilet var
@@ -48,16 +66,16 @@ giriş yaparak bilet satabildiği tam kapsamlı rezervasyon sistemi.
   düğmesi; hepsi çöp kutusuna gider, geri alınabilir, firmanın kendi kayıtlarına dokunulmaz
 - Giriş ekranındaki kurulum bilgisi, yönetici şifresini değiştirdiği anda kaybolur
 
-**Premium arayüz — Tailwind CSS (yeni)**
+**Premium arayüz — Tailwind CSS**
 
 - Müşteri karşılama sayfası ve yetkili giriş ekranı **Tailwind CSS** ile yazıldı
-- **Giriş ekranı**: split-screen — solda seyahat temalı lacivert gradyan, marka logosu ve
-  5 saniyede bir değişen dinamik slogan; sağda `rounded-2xl` minimalist form,
-  odaklanınca mavi parlayan girdiler (`focus:ring-2 focus:ring-blue-500`), şifre göster/gizle
+- **Giriş ekranı**: split-screen — solda gece mavisi gradyan, marka logosu ve
+  5 saniyede bir değişen dinamik slogan; sağda buzlu cam form kartı,
+  odaklanınca altın parlayan girdiler, şifre göster/gizle
 - **Bilet arama**: sayı şeridinin üzerine binen **yüzen kart** (floating card)
 - Sefer kartlarında doluluğa göre **canlı rozetler**: Müsait / Doluyor / Son koltuklar / Doldu
 - Lucide çizgi ikonları satır içi gömülü (dış bağımlılık yok)
-- Inter yazı tipi, `bg-slate-50` zemin, `shadow-sm hover:shadow-md transition-all duration-300`
+- Inter yazı tipi, `bg-gece-900` zemin, yumuşak gölge ve `transition-all duration-300` geçişler
 
 > CSS **derlenmiş olarak pakette gelir** (`public/css/tailwind.css`, ~35 KB).
 > Kurulum veya derleme adımı gerekmez. Sınıfları değiştirirseniz `npm run stil` ile yeniden üretin.

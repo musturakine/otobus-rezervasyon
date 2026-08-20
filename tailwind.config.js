@@ -1,9 +1,9 @@
 /** Tailwind yapılandırması
- *  Sadece müşteri karşılama sayfası ve sorumlu giriş ekranı Tailwind kullanır.
+ *  Müşteri karşılama sayfası ve sorumlu giriş ekranı Tailwind kullanır.
  *  Yönetim paneli (app.html) kendi stil dosyasıyla çalışır.
  *
- *  Renkler Serhendi Turizm logosundan alınmıştır:
- *    yeşil #166b42 · altın #d7bb55 · fildişi #f7f7f2
+ *  Tema: Koyu (dark) · buzlu cam (glassmorphic) · altın vurgular
+ *    gece  #0B132B / #0F172A   ·   altın #EAB308
  *
  *  CSS'i yeniden üretmek için:  npm run stil
  */
@@ -17,34 +17,42 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', 'Segoe UI', 'Roboto', '-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', 'Arial', 'sans-serif']
       },
-      spacing: { 13: '3.25rem' },
+      spacing: { 13: '3.25rem', 15: '3.75rem' },
       colors: {
-        /* Marka yeşili */
-        marka: {
-          50:  '#eef6f1',
-          100: '#d6eade',
-          200: '#a9d4bd',
-          300: '#7fc9a3',
-          400: '#1e8a55',
-          500: '#166b42',
-          600: '#125b37',
-          700: '#0d4a2c',
-          800: '#08301d',
-          900: '#062617'
+        /* Derin gece mavisi — zeminler */
+        gece: {
+          950: '#070C1A',
+          900: '#0B132B',
+          800: '#0F172A',
+          700: '#152142',
+          600: '#1C2C56',
+          500: '#24386B',
+          400: '#38507F'
         },
-        /* Marka altını */
+        /* Altın sarı — vurgular */
         altin: {
-          100: '#f6efd4',
-          200: '#ecdfa9',
-          300: '#e3d086',
-          400: '#d7bb55',
-          500: '#c9a93f',
-          600: '#b2953a',
-          700: '#8d742c'
+          50:  '#FEFCE8',
+          100: '#FEF9C3',
+          200: '#FEF08A',
+          300: '#FDE047',
+          400: '#FACC15',
+          500: '#EAB308',
+          600: '#CA8A04',
+          700: '#A16207'
         },
-        /* Logonun fildişi zemini */
-        fildisi: '#f7f7f2'
-      }
+        /* Logodaki marka yeşili — rozet ve ikincil vurgular */
+        marka: {
+          300: '#7FC9A3',
+          400: '#1E8A55',
+          500: '#166B42',
+          700: '#0D4A2C'
+        }
+      },
+      boxShadow: {
+        altin: '0 10px 30px -8px rgba(234,179,8,.45)',
+        cam: '0 8px 32px 0 rgba(2,6,23,.55)'
+      },
+      backdropBlur: { cam: '14px' }
     }
   },
   plugins: []

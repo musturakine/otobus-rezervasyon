@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" class="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#08301d">
+<meta name="theme-color" content="#0B132B">
 <title>Sorumlu Girişi — Serhendi Turizm</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/amblem-serhendi.png">
@@ -16,9 +16,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/tailwind.css">
 <style>
-  /* Tailwind ile ifade edilemeyen birkaç dekoratif ayrıntı */
+  /* Tailwind ile ifade edilemeyen dekoratif ayrıntılar */
   .desen-yol{
-    background-image:repeating-linear-gradient(115deg,transparent 0 74px,rgba(255,255,255,.5) 74px 126px);
+    background-image:repeating-linear-gradient(115deg,transparent 0 74px,rgba(234,179,8,.25) 74px 126px);
     -webkit-mask-image:linear-gradient(to bottom,transparent,#000 32%,#000 68%,transparent);
     mask-image:linear-gradient(to bottom,transparent,#000 32%,#000 68%,transparent);
     animation:kay 9s linear infinite;
@@ -29,99 +29,121 @@
   .isik-2{animation:yuz 22s ease-in-out infinite reverse}
   .slogan-gir{animation:sloganGir .55s cubic-bezier(.2,.9,.3,1.1) both}
   @keyframes sloganGir{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  /* İnce ızgara dokusu */
+  .izgara{
+    background-image:linear-gradient(rgba(148,163,184,.07) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(148,163,184,.07) 1px,transparent 1px);
+    background-size:46px 46px;
+    -webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 10%,transparent 72%);
+    mask-image:radial-gradient(ellipse at 50% 0%,#000 10%,transparent 72%);
+  }
+  .altin-cizgi{background:linear-gradient(90deg,transparent,rgba(234,179,8,.65),transparent)}
+  /* Tarayıcı otomatik doldurmasında beyaz zemin oluşmasın */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus{
+    -webkit-text-fill-color:#e2e8f0;
+    -webkit-box-shadow:0 0 0 1000px #0F172A inset;
+    caret-color:#e2e8f0;
+    transition:background-color 9999s ease-out;
+  }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
-<body class="bg-fildisi font-sans text-slate-900 antialiased">
+<body class="bg-gece-900 font-sans text-slate-200 antialiased">
 
 <div class="min-h-screen lg:grid lg:grid-cols-[1.05fr_.95fr]">
 
   <!-- ══════════ SOL: MARKA ALANI ══════════ -->
-  <aside class="relative hidden overflow-hidden bg-gradient-to-br from-marka-900 via-marka-700 to-marka-500 p-12 text-white lg:flex lg:flex-col lg:justify-between">
-    <div class="isik-1 pointer-events-none absolute -right-40 -top-48 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(215,187,85,.36),transparent_62%)] blur-[10px]"></div>
-    <div class="isik-2 pointer-events-none absolute -bottom-56 -left-32 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,rgba(30,138,85,.45),transparent_66%)] blur-[10px]"></div>
-    <div class="desen-yol pointer-events-none absolute inset-0 opacity-[.14]"></div>
+  <aside class="relative hidden overflow-hidden bg-gradient-to-br from-gece-950 via-gece-900 to-gece-700 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+    <div class="isik-1 pointer-events-none absolute -right-40 -top-48 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle_at_35%_35%,rgba(234,179,8,.30),transparent_62%)] blur-[10px]"></div>
+    <div class="isik-2 pointer-events-none absolute -bottom-56 -left-32 h-[500px] w-[500px] rounded-full bg-[radial-gradient(circle,rgba(36,56,107,.75),transparent_66%)] blur-[10px]"></div>
+    <div class="izgara pointer-events-none absolute inset-0"></div>
+    <div class="desen-yol pointer-events-none absolute inset-0 opacity-[.10]"></div>
 
     <!-- Logo -->
     <div class="relative z-10 flex items-center gap-4">
       <img id="brandLogo" src="/icons/amblem-serhendi.png" alt=""
-           class="h-14 w-14 rounded-2xl shadow-2xl shadow-black/40">
+           class="h-14 w-14 rounded-2xl ring-1 ring-altin-500/25 shadow-2xl shadow-black/50">
       <div class="min-w-0">
         <div id="brandName" class="text-xl font-extrabold leading-tight tracking-tight">SERHENDİ TURİZM</div>
-        <div id="brandSlogan" class="text-[13px] font-medium text-marka-100/80"></div>
+        <div id="brandSlogan" class="text-[13px] font-medium text-altin-200/70"></div>
       </div>
     </div>
 
     <!-- Dinamik slogan -->
     <div class="relative z-10 max-w-lg">
-      <div class="mb-7 inline-flex items-center gap-2.5 rounded-full border border-altin-300/35 bg-altin-300/12 px-4 py-2 text-[13px] font-bold tracking-wide text-altin-200">
+      <div class="mb-7 inline-flex items-center gap-2.5 rounded-full border border-altin-500/30 bg-altin-500/10 px-4 py-2 text-[13px] font-bold tracking-wide text-altin-300 backdrop-blur-cam">
         <span class="relative flex h-2 w-2">
-          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-altin-300 opacity-70"></span>
-          <span class="relative inline-flex h-2 w-2 rounded-full bg-altin-300"></span>
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-altin-400 opacity-70"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-altin-400"></span>
         </span>
         Sorumlu satış paneli
       </div>
 
       <h1 id="dinamikSlogan" class="slogan-gir text-[42px] font-extrabold leading-[1.12] tracking-[-.035em] xl:text-[52px]">
-        Koltuk satışınız<br><span class="bg-gradient-to-r from-altin-200 via-altin-300 to-altin-400 bg-clip-text text-transparent">tek ekranda.</span>
+        Koltuk satışınız<br><span class="bg-gradient-to-r from-altin-300 via-altin-500 to-altin-300 bg-clip-text text-transparent">tek ekranda.</span>
       </h1>
-      <p id="dinamikAlt" class="slogan-gir mt-5 max-w-md text-[16px] leading-relaxed text-marka-100/80">
+      <p id="dinamikAlt" class="slogan-gir mt-5 max-w-md text-[16px] leading-relaxed text-slate-400">
         Sefer planından tahsilata, koltuk haritasından yolcu listesine kadar her şey aynı yerde.
       </p>
 
       <div class="mt-9 flex flex-wrap gap-2.5">
-        <span class="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[13px] font-medium backdrop-blur">🎫 Anlık koltuk kilidi</span>
-        <span class="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[13px] font-medium backdrop-blur">👥 Kafile satışı</span>
-        <span class="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[13px] font-medium backdrop-blur">⚖️ Bay–bayan kuralı</span>
-        <span class="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[13px] font-medium backdrop-blur">📊 Acente raporları</span>
+        <span class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[13px] font-medium text-slate-300 backdrop-blur-cam">🎫 Anlık koltuk kilidi</span>
+        <span class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[13px] font-medium text-slate-300 backdrop-blur-cam">👥 Kafile satışı</span>
+        <span class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[13px] font-medium text-slate-300 backdrop-blur-cam">⚖️ Bay–bayan kuralı</span>
+        <span class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[13px] font-medium text-slate-300 backdrop-blur-cam">📊 Acente raporları</span>
       </div>
     </div>
 
-    <p class="relative z-10 text-[13px] text-marka-100/45">
+    <p class="relative z-10 text-[13px] text-slate-500">
       © <span id="yr"></span> <span id="altMarka">Serhendi Turizm</span> — Tüm hakları saklıdır.
     </p>
   </aside>
 
   <!-- ══════════ SAĞ: GİRİŞ FORMU ══════════ -->
-  <main class="flex min-h-screen items-center justify-center bg-fildisi px-5 py-10 sm:px-8 lg:min-h-0">
-    <div class="w-full max-w-[430px]">
+  <main class="relative flex min-h-screen items-center justify-center overflow-hidden bg-gece-800 px-5 py-10 sm:px-8 lg:min-h-0">
+    <div class="pointer-events-none absolute -top-40 right-0 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(234,179,8,.14),transparent_65%)] blur-[8px] lg:hidden"></div>
+    <div class="izgara pointer-events-none absolute inset-0"></div>
+
+    <div class="relative z-10 w-full max-w-[430px]">
 
       <!-- Mobil marka -->
       <div class="mb-9 flex items-center gap-3.5 lg:hidden">
-        <img id="brandLogoMobil" src="/icons/amblem-serhendi.png" alt="" class="h-12 w-12 rounded-xl shadow-md">
+        <img id="brandLogoMobil" src="/icons/amblem-serhendi.png" alt="" class="h-12 w-12 rounded-xl ring-1 ring-altin-500/25 shadow-lg shadow-black/40">
         <div>
-          <div id="brandNameMobil" class="text-[17px] font-extrabold tracking-tight">SERHENDİ TURİZM</div>
-          <div class="text-[12.5px] font-medium text-slate-500">Sorumlu satış paneli</div>
+          <div id="brandNameMobil" class="text-[17px] font-extrabold tracking-tight text-white">SERHENDİ TURİZM</div>
+          <div class="text-[12.5px] font-medium text-altin-300/70">Sorumlu satış paneli</div>
         </div>
       </div>
 
       <!-- ══════ 1. ADIM: SEÇİM EKRANI ══════ -->
-      <div id="secimEkrani" class="rounded-2xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:shadow-md sm:p-9">
+      <div id="secimEkrani" class="rounded-2xl border border-white/10 bg-white/[.04] p-7 shadow-cam backdrop-blur-cam transition-all duration-300 sm:p-9">
 
         <div class="mb-7">
-          <h2 class="text-[27px] font-extrabold tracking-[-.03em]">Hoş geldiniz</h2>
-          <p class="mt-1.5 text-[15px] text-slate-500">Nasıl devam etmek istersiniz?</p>
+          <h2 class="text-[27px] font-extrabold tracking-[-.03em] text-white">Hoş geldiniz</h2>
+          <p class="mt-1.5 text-[15px] text-slate-400">Nasıl devam etmek istersiniz?</p>
         </div>
 
         <div class="space-y-3.5">
 
           <!-- Müşteri girişi — şifre sormaz -->
           <a href="/"
-            class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-altin-400/70 hover:shadow-md">
-            <span class="inline-flex h-13 w-13 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-altin-400 to-altin-600 text-white shadow-lg shadow-altin-600/30">
+            class="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[.03] p-5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-altin-500/50 hover:bg-white/[.06] hover:shadow-altin">
+            <span class="inline-flex h-13 w-13 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-altin-400 to-altin-600 text-gece-900 shadow-altin">
               <!-- lucide: bus -->
               <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 17h16M6 17v2M18 17v2M5 6h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zM3 10h18M9 6v4M15 6v4"/>
               </svg>
             </span>
             <span class="min-w-0 flex-1">
-              <b class="block text-[17px] font-extrabold tracking-tight">Müşteri Girişi</b>
-              <span class="mt-0.5 block text-[13.5px] leading-relaxed text-slate-500">
+              <b class="block text-[17px] font-extrabold tracking-tight text-white">Müşteri Girişi</b>
+              <span class="mt-0.5 block text-[13.5px] leading-relaxed text-slate-400">
                 Seferleri ve boş koltukları görüntüleyin.
-                <b class="font-semibold text-marka-500">Şifre gerekmez.</b>
+                <b class="font-semibold text-altin-400">Şifre gerekmez.</b>
               </span>
             </span>
-            <svg class="h-5 w-5 flex-shrink-0 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-altin-600"
+            <svg class="h-5 w-5 flex-shrink-0 text-slate-600 transition-all duration-300 group-hover:translate-x-1 group-hover:text-altin-400"
               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14M13 6l6 6-6 6"/>
             </svg>
@@ -129,20 +151,20 @@
 
           <!-- Sorumlu girişi — şifre ekranını açar -->
           <button type="button" id="sorumluAc"
-            class="group flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-marka-500/60 hover:shadow-md">
-            <span class="inline-flex h-13 w-13 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-marka-500 to-marka-700 text-white shadow-lg shadow-marka-700/30">
+            class="group flex w-full items-center gap-4 rounded-2xl border border-white/10 bg-white/[.03] p-5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[.06] hover:shadow-cam">
+            <span class="inline-flex h-13 w-13 flex-shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-gece-600 to-gece-800 text-altin-300 shadow-cam">
               <!-- lucide: lock-keyhole -->
               <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/>
               </svg>
             </span>
             <span class="min-w-0 flex-1">
-              <b class="block text-[17px] font-extrabold tracking-tight">Sorumlu Girişi</b>
-              <span class="mt-0.5 block text-[13.5px] leading-relaxed text-slate-500">
+              <b class="block text-[17px] font-extrabold tracking-tight text-white">Sorumlu Girişi</b>
+              <span class="mt-0.5 block text-[13.5px] leading-relaxed text-slate-400">
                 Bilet satışı ve yönetim paneli. Kullanıcı adı ve şifre istenir.
               </span>
             </span>
-            <svg class="h-5 w-5 flex-shrink-0 text-slate-300 transition-all duration-300 group-hover:translate-x-1 group-hover:text-marka-500"
+            <svg class="h-5 w-5 flex-shrink-0 text-slate-600 transition-all duration-300 group-hover:translate-x-1 group-hover:text-slate-300"
               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14M13 6l6 6-6 6"/>
             </svg>
@@ -151,10 +173,10 @@
       </div>
 
       <!-- ══════ 2. ADIM: ŞİFRE EKRANI ══════ -->
-      <div id="formEkrani" class="hidden rounded-2xl border border-slate-200/80 bg-white p-7 shadow-sm transition-all duration-300 hover:shadow-md sm:p-9">
+      <div id="formEkrani" class="hidden rounded-2xl border border-white/10 bg-white/[.04] p-7 shadow-cam backdrop-blur-cam transition-all duration-300 sm:p-9">
 
         <button type="button" id="geriBtn"
-          class="mb-6 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-slate-500 transition-colors hover:text-slate-900">
+          class="mb-6 inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-slate-400 transition-colors hover:text-altin-300">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 12H5M11 18l-6-6 6-6"/>
           </svg>
@@ -162,21 +184,21 @@
         </button>
 
         <div class="mb-7">
-          <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-marka-500 to-marka-700 text-white shadow-lg shadow-marka-700/30">
+          <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-altin-400 to-altin-600 text-gece-900 shadow-altin">
             <svg class="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="16" r="1"/><rect x="3" y="10" width="18" height="12" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/>
             </svg>
           </div>
-          <h2 class="text-[27px] font-extrabold tracking-[-.03em]">Sorumlu girişi</h2>
-          <p class="mt-1.5 text-[15px] text-slate-500">Devam etmek için hesabınıza giriş yapın.</p>
+          <h2 class="text-[27px] font-extrabold tracking-[-.03em] text-white">Sorumlu girişi</h2>
+          <p class="mt-1.5 text-[15px] text-slate-400">Devam etmek için hesabınıza giriş yapın.</p>
         </div>
 
         <form id="loginForm" autocomplete="on" class="space-y-5">
 
           <div>
-            <label for="username" class="mb-2 block text-[13px] font-semibold text-slate-700">Kullanıcı adı</label>
+            <label for="username" class="mb-2 block text-[13px] font-semibold text-slate-300">Kullanıcı adı</label>
             <div class="group relative">
-              <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition-colors duration-200 group-focus-within:text-marka-500">
+              <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500 transition-colors duration-200 group-focus-within:text-altin-400">
                 <!-- lucide: user -->
                 <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -184,14 +206,14 @@
               </span>
               <input id="username" name="username" autocomplete="username" required autofocus
                 placeholder="kullanıcı adınız"
-                class="w-full rounded-xl border border-slate-300 bg-white py-3.5 pl-12 pr-4 text-[15px] placeholder:text-slate-400 transition-all duration-200 focus:border-marka-400 focus:outline-none focus:ring-2 focus:ring-marka-400 focus:ring-offset-1">
+                class="w-full rounded-xl border border-white/10 bg-gece-800/80 py-3.5 pl-12 pr-4 text-[15px] text-slate-100 placeholder:text-slate-500 transition-all duration-200 focus:border-altin-500/60 focus:outline-none focus:ring-2 focus:ring-altin-500/40">
             </div>
           </div>
 
           <div>
-            <label for="password" class="mb-2 block text-[13px] font-semibold text-slate-700">Şifre</label>
+            <label for="password" class="mb-2 block text-[13px] font-semibold text-slate-300">Şifre</label>
             <div class="group relative">
-              <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition-colors duration-200 group-focus-within:text-marka-500">
+              <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500 transition-colors duration-200 group-focus-within:text-altin-400">
                 <!-- lucide: key-round -->
                 <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
@@ -199,9 +221,9 @@
               </span>
               <input id="password" name="password" type="password" autocomplete="current-password" required
                 placeholder="••••••••"
-                class="w-full rounded-xl border border-slate-300 bg-white py-3.5 pl-12 pr-12 text-[15px] placeholder:text-slate-400 transition-all duration-200 focus:border-marka-400 focus:outline-none focus:ring-2 focus:ring-marka-400 focus:ring-offset-1">
+                class="w-full rounded-xl border border-white/10 bg-gece-800/80 py-3.5 pl-12 pr-12 text-[15px] text-slate-100 placeholder:text-slate-500 transition-all duration-200 focus:border-altin-500/60 focus:outline-none focus:ring-2 focus:ring-altin-500/40">
               <button type="button" id="gozBtn" aria-label="Şifreyi göster"
-                class="absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 transition-colors hover:text-slate-700">
+                class="absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 transition-colors hover:text-altin-300">
                 <svg id="gozAcik" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
                 </svg>
@@ -213,7 +235,7 @@
           </div>
 
           <div id="loginErr" role="alert"
-            class="hidden items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13.5px] font-medium text-red-700">
+            class="hidden items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-[13.5px] font-medium text-red-300">
             <svg class="mt-[3px] h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
             </svg>
@@ -221,7 +243,7 @@
           </div>
 
           <button id="loginBtn" type="submit"
-            class="flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-br from-marka-500 to-marka-700 py-3.5 text-[15px] font-bold text-white shadow-lg shadow-marka-700/30 transition-all duration-300 hover:shadow-xl hover:shadow-marka-700/40 focus:outline-none focus:ring-2 focus:ring-marka-400 focus:ring-offset-2 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60">
+            class="flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-altin-400 to-altin-600 py-3.5 text-[15px] font-extrabold text-gece-900 shadow-altin transition-all duration-300 hover:from-altin-300 hover:to-altin-500 focus:outline-none focus:ring-2 focus:ring-altin-400 focus:ring-offset-2 focus:ring-offset-gece-800 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60">
             <span id="loginBtnYazi">Giriş yap</span>
             <svg id="loginBtnOk" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14M13 6l6 6-6 6"/>
@@ -230,24 +252,24 @@
         </form>
 
         <div id="ilkKurulumKutu"
-          class="mt-6 hidden rounded-xl border border-dashed border-slate-300 bg-fildisi/80 px-4 py-4 text-[13px] text-slate-600">
-          <div class="mb-2 flex items-center gap-2 font-bold text-slate-800">
-            <svg class="h-4 w-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          class="mt-6 hidden rounded-xl border border-dashed border-altin-500/30 bg-altin-500/[.07] px-4 py-4 text-[13px] text-slate-300">
+          <div class="mb-2 flex items-center gap-2 font-bold text-altin-300">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/><circle cx="12" cy="12" r="4"/>
             </svg>
             İlk kurulum
           </div>
-          Kullanıcı adı <code class="rounded bg-white px-1.5 py-0.5 font-mono text-[12.5px] font-semibold text-slate-800 ring-1 ring-slate-200">admin</code>
-          &nbsp;·&nbsp; Şifre <code class="rounded bg-white px-1.5 py-0.5 font-mono text-[12.5px] font-semibold text-slate-800 ring-1 ring-slate-200">admin123</code>
-          <div class="mt-2 text-[12px] leading-relaxed text-slate-500">
-            Giriş yaptıktan sonra <b class="text-slate-700">Ayarlar → Şifremi değiştir</b> bölümünden şifrenizi
+          Kullanıcı adı <code class="rounded bg-gece-900 px-1.5 py-0.5 font-mono text-[12.5px] font-semibold text-altin-200 ring-1 ring-white/10">admin</code>
+          &nbsp;·&nbsp; Şifre <code class="rounded bg-gece-900 px-1.5 py-0.5 font-mono text-[12.5px] font-semibold text-altin-200 ring-1 ring-white/10">admin123</code>
+          <div class="mt-2 text-[12px] leading-relaxed text-slate-400">
+            Giriş yaptıktan sonra <b class="text-slate-200">Ayarlar → Şifremi değiştir</b> bölümünden şifrenizi
             değiştirin. Değiştirdiğiniz anda bu kutu kaybolur.
           </div>
         </div>
       </div>
 
-      <p id="altNot" class="mt-6 text-center text-[12.5px] text-slate-400">
-        Müşteriyseniz şifreye ihtiyacınız yok — <a href="/" class="font-semibold text-slate-500 underline decoration-slate-300 underline-offset-2 transition-colors hover:text-marka-500">sefer listesine gidin</a>.
+      <p id="altNot" class="mt-6 text-center text-[12.5px] text-slate-500">
+        Müşteriyseniz şifreye ihtiyacınız yok — <a href="/" class="font-semibold text-slate-400 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-altin-300">sefer listesine gidin</a>.
       </p>
     </div>
   </main>
@@ -317,7 +339,7 @@ setInterval(() => {
   const s = SLOGANLAR[sloganNo];
   sloganEl.classList.remove('slogan-gir'); altEl.classList.remove('slogan-gir');
   void sloganEl.offsetWidth;
-  sloganEl.innerHTML = s.bas + '<br><span class="bg-gradient-to-r from-altin-200 via-altin-300 to-altin-400 bg-clip-text text-transparent">' + s.vurgu + '</span>';
+  sloganEl.innerHTML = s.bas + '<br><span class="bg-gradient-to-r from-altin-300 via-altin-500 to-altin-300 bg-clip-text text-transparent">' + s.vurgu + '</span>';
   altEl.textContent = s.alt;
   sloganEl.classList.add('slogan-gir'); altEl.classList.add('slogan-gir');
 }, 5200);
